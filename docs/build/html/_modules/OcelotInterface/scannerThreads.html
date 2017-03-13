@@ -1,0 +1,940 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.scannerThreads &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.scannerThreads</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">File to contain scanner classes to be used in the ocelot interface GUI</span>
+
+<span class="sd">Tyler Cope, 2016</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+
+<span class="c">#OCELOT files</span>
+<span class="kn">from</span> <span class="nn">mint.mint</span> <span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Action</span>
+<span class="kn">from</span> <span class="nn">mint.lcls_interface</span> <span class="kn">import</span> <span class="n">LCLSMachineInterface</span><span class="p">,</span> <span class="n">LCLSDeviceProperties</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+
+<span class="c">#load in GP modules</span>
+<span class="kn">from</span> <span class="nn">GP.GPtools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">GP.OnlineGP</span> <span class="kn">import</span> <span class="n">OGP</span>
+<span class="kn">from</span> <span class="nn">GP.SPGPmodel</span> <span class="kn">import</span> <span class="n">SPGP</span>
+<span class="kn">from</span> <span class="nn">GP.BasicInterfaces</span> <span class="kn">import</span> <span class="n">fint</span>
+<span class="kn">import</span> <span class="nn">GP.BayesOptimization</span> <span class="kn">as</span> <span class="nn">BOpt</span>
+
+<span class="kn">from</span> <span class="nn">taperThread</span> <span class="kn">import</span> <span class="n">Taper</span>
+
+<div class="viewcode-block" id="OcelotScanner"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner">[docs]</a><span class="k">class</span> <span class="nc">OcelotScanner</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is a threaded class that runs the simplex and other scipy methods from ocelot.</span>
+
+<span class="sd">        Uses the lcls machine interface and device properties class to interface with epics.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s">&#39;simplex&#39;</span><span class="p">,</span>
+                <span class="n">norm_params_file</span><span class="o">=</span><span class="s">&#39;parameters/normParams&#39;</span><span class="p">,</span>
+                <span class="n">norm_params_bool</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">taper_coeff</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Init method for the ocelot scanner.</span>
+
+<span class="sd">                The init method takes args specific to the scanner type.</span>
+<span class="sd">                For instance this scanner takes in information for normalization, while the GP takes for a seed.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        parent: &#39;self&#39; from the parent GUI that creates this object</span>
+<span class="sd">                        method (str): String for the optmization method (see docs for scipy.optimize.minimize package)</span>
+<span class="sd">                        norm_params_file (str): String for directory of normalization csv file</span>
+<span class="sd">                        norm_params_bool (bool): Bool to tell scanner if it should normalize using norm_params_file</span>
+<span class="sd">                        norm_amp_coeff (float): Multiplication scaling factor to the normalization coeffs</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#threading setup</span>
+                <span class="nb">super</span><span class="p">(</span><span class="n">OcelotScanner</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>	
+                <span class="bp">self</span><span class="o">.</span><span class="n">stoprequest</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>      <span class="o">=</span> <span class="n">parent</span>
+
+                <span class="c">#input parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">method</span>           <span class="o">=</span> <span class="n">method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span> <span class="o">=</span> <span class="n">norm_params_file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="n">norm_params_bool</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span>   <span class="o">=</span> <span class="n">norm_amp_coeff</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span> <span class="o">=</span> <span class="n">taper_coeff</span>
+
+<div class="viewcode-block" id="OcelotScanner.setup"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner.setup">[docs]</a>        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvs</span><span class="p">,</span> <span class="n">objective_func_pv</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="mi">45</span><span class="p">,</span> <span class="n">mi</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">dp</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Basic setup of the ocelot scanner.</span>
+
+<span class="sd">                The setup method is called from the GUI when a scan is started.</span>
+<span class="sd">                This method should have the same arguments for each scanner.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs (List[str]): List of the PVs to be used in scan</span>
+<span class="sd">                        objective_func_pv (str): String for the PV for the value to maximize</span>
+<span class="sd">                        iters (int): Number of iterations for the scanner to run</span>
+<span class="sd">                        mi: MachineInterface object from the mint file</span>
+<span class="sd">                        dp: DeviceProperties oject fromt the mint file</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#define pvlist</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs</span>
+
+                <span class="c">#setup MI and dP from previously created objects</span>
+                <span class="c">#Need to do this to enable seeded GP scans </span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">mi</span> <span class="ow">or</span> <span class="n">dp</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">LCLSMachineInterface</span><span class="p">()</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dp</span> <span class="o">=</span> <span class="n">LCLSDeviceProperties</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">mi</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dp</span> <span class="o">=</span> <span class="n">dp</span>
+
+                <span class="c">#setup the scanner to use selected pvs, and chosen objective func</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">setUpDetector</span><span class="p">(</span><span class="n">pvs</span><span class="p">,</span><span class="n">detector</span><span class="o">=</span><span class="n">objective_func_pv</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">setup_data_record</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+
+                <span class="c">#setup normalization options if normalization mode selected</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">:</span>
+                        <span class="c">#load in params from file</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">inputNormParams</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadNormFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span>
+                
+                <span class="c">#setup taper scaling parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">taperParams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupTaperScaling</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span><span class="p">)</span>
+                
+                <span class="c">#propertys of the scanner</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dp</span><span class="o">.</span><span class="n">get_start_values</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+
+                <span class="c">#creat optimizer object </span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="n">Optimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dp</span><span class="p">)</span>
+
+                <span class="c">#set up the timing delays</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">timeout</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">trim_delay</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">data_delay</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">secs_to_ave</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">data_delay</span>
+
+                <span class="c">#sequence, we only use one sequence here</span>
+                <span class="c">#Ocelot was designed to launch multiple sequences of scan</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seq</span> <span class="o">=</span> <span class="p">[</span><span class="n">Action</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">max_sase</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span> <span class="n">pvs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;maxiter&#39;</span><span class="p">:</span><span class="n">iters</span><span class="p">,</span><span class="s">&#39;xtol&#39;</span><span class="p">:</span><span class="mf">1.e-1</span><span class="p">}])]</span>
+</div>
+<div class="viewcode-block" id="OcelotScanner.run"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner.run">[docs]</a>        <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">guimode</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to start up the thread.</span>
+
+<span class="sd">                In this class, the squence length is only one, using all the PVs from the setup funciton.</span>
+<span class="sd">                If guimode is selected, when the scan is finished the GUI update clock stops and data is saved to file.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        guimode (bool): Bool that tells parent GUI to reset UI and save data.</span>
+<span class="sd">                        If running a GP seeded scan, dont reset GUI after simpelx is done</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        The kill status (bool) of optimizer object if not in GUI mode</span>
+<span class="sd">                        This is used in the case that this object is used in seeded mode for the GP optimizer</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#Start command for the ocelot scanner</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seq</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">guimode</span><span class="p">:</span>                        
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">saveData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                        <span class="c">#self.parent.scanFinished()</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="c">#Flips a flag in the optimizer to exit</span>
+                        <span class="c">#There is probably a better way to do this, but it works for now</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span>
+
+</div>
+<div class="viewcode-block" id="OcelotScanner.loadNormFile2"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner.loadNormFile2">[docs]</a>        <span class="k">def</span> <span class="nf">loadNormFile2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">amplitude_coeff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Load in precalculated normalization parameters from a file.</span>
+<span class="sd">               </span>
+<span class="sd">                This file is generated using the &#39;archiveRetrieve&#39; module.</span>
+<span class="sd">                The file should be CSV formatted,ie: </span>
+<span class="sd">                        PV1,mu1,sigma1</span>
+<span class="sd">                        PV2,mu2,sigma2</span>
+<span class="sd">                        ...</span>
+
+<span class="sd">                The amplitude coefficent input arg is used to quickly modify the aproximate strength of the scan. </span>
+<span class="sd">                A larger coefficent will make the optimizer take lager steps (more exploration).</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        filename (str): String for the file directory</span>
+<span class="sd">                        amplitude_coeff (float): Scaling factor to modify device range</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        inputNormParams (dict): Dict of normalization coefficents {&#39;keys&#39;: [mu,sig]}</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">print</span> <span class="s">&quot;LOADING SCIPY/SIMPLEX NORMALIZATION FILE&quot;</span>
+                <span class="n">inputNormParams</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+                        <span class="n">f</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span><span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">mu</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">amplitude_coeff</span> <span class="c">#mult by coeff</span>
+                                <span class="n">sig</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">*</span><span class="n">amplitude_coeff</span> <span class="c">#mult by coeff</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;#&quot;</span><span class="p">:</span>
+                                        <span class="n">inputNormParams</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">mu</span><span class="p">,</span><span class="n">sig</span><span class="p">]</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                        <span class="k">continue</span>
+
+                <span class="c">#print out all the loaded params</span>
+                <span class="k">print</span> <span class="s">&quot;Normalization parameters: [mu,sigma]&quot;</span>
+                <span class="k">print</span>
+                <span class="n">saveable</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">inputNormParams</span><span class="p">:</span>
+                        <span class="n">saveable</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">inputNormParams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                        <span class="k">print</span> <span class="n">key</span><span class="p">,</span><span class="n">inputNormParams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;normParams&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saveable</span>
+
+                <span class="c">#check that the whole PV list has a normalization entry</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">inputNormParams</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Some PVs not found in the scipy normalizaiton file &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+
+                <span class="k">return</span> <span class="n">inputNormParams</span>
+
+</div>
+<div class="viewcode-block" id="OcelotScanner.loadNormFile"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner.loadNormFile">[docs]</a>        <span class="k">def</span> <span class="nf">loadNormFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">amplitude_coeff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+
+                <span class="k">print</span> <span class="s">&quot;LOADING NORM FILE&quot;</span>
+                <span class="c">#Load in a npy file containing hyperparameters binned for every 1 GeV of beam energy</span>
+                <span class="n">extention</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+                <span class="c">#get current L3 beam energy</span>
+                <span class="n">energy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="s">&quot;BEND:DMP1:400:BDES&quot;</span><span class="p">))))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">3</span><span class="p">:</span> <span class="n">key</span> <span class="o">=</span> <span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">4</span><span class="p">:</span> <span class="n">key</span> <span class="o">=</span> <span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">print</span> <span class="s">&quot;Loading scipy/simplex parameters for&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s">&quot;GeV from&quot;</span><span class="p">,</span><span class="n">filename</span>
+                <span class="k">print</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+                <span class="n">filedata</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+
+                <span class="c">#sort list to match the UIs PV list order</span>
+                <span class="c">#if they are loaded in the wrong order, the optimzer will get the wrong params for a device</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">hyps</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">normParams</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">match_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="n">names</span> <span class="o">=</span> <span class="n">filedata</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> 
+                        <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                                <span class="n">ave</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">filedata</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">amplitude_coeff</span>
+                                <span class="n">std</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">filedata</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                                <span class="k">print</span> <span class="n">pv</span><span class="p">,</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span>
+                                <span class="c">#hyp = self.calcLengthScaleHP(ave,std)</span>
+                                <span class="n">normParams</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span><span class="p">]</span>
+                                <span class="c">#hyps.append(hyp)</span>
+                                <span class="n">match_count</span><span class="o">+=</span><span class="mi">1</span> 
+
+                <span class="k">if</span> <span class="n">match_count</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Number of PVs in list does not match PVs found in hyperparameter file&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">normParams</span>
+</div>
+<div class="viewcode-block" id="OcelotScanner.setupTaperScaling"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.OcelotScanner.setupTaperScaling">[docs]</a>        <span class="k">def</span> <span class="nf">setupTaperScaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">taper_coeff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s">&quot;Setting up taper scaling&quot;</span>
+                <span class="n">taperParams</span> <span class="o">=</span> <span class="n">Taper</span><span class="p">()</span><span class="o">.</span><span class="n">taperParams</span><span class="p">();</span>
+                <span class="n">taperPVs</span> <span class="o">=</span> <span class="n">Taper</span><span class="p">()</span><span class="o">.</span><span class="n">getPVs</span><span class="p">();</span>
+                <span class="k">print</span> <span class="n">taperParams</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">taperPVs</span><span class="p">:</span>
+                        <span class="n">taperParams</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">taperParams</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">taper_coeff</span>
+                <span class="k">print</span> <span class="s">&quot;ok&quot;</span>
+                <span class="k">return</span> <span class="n">taperParams</span>
+</div></div>
+<div class="viewcode-block" id="GpScanner"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner">[docs]</a><span class="k">class</span> <span class="nc">GpScanner</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Class to setup gaussian process bayes optimization scanner.</span>
+
+<span class="sd">        Similar style to the scipy/simplex ocelot scanner class.</span>
+<span class="sd">        Uses the GP bayes optimization package writen by Mitch McIntire</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">parent</span>           <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="n">seed_file</span>        <span class="o">=</span> <span class="s">&#39;parameters/simSeed.mat&#39;</span><span class="p">,</span>
+                <span class="n">hyp_file</span>         <span class="o">=</span> <span class="s">&#39;parameters/hyperparameters.npy&#39;</span><span class="p">,</span>
+                <span class="n">seedScanBool</span>     <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="n">seedIters</span>        <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="n">norm_params_file</span> <span class="o">=</span> <span class="s">&#39;parameters/normParams&#39;</span><span class="p">,</span>
+                <span class="n">norm_amp_coeff</span>   <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initilizaiton function for the GP scanner, contains specific parameters for the GP. </span>
+
+<span class="sd">                This is the threaded implementation of the GP code, setup to interface with the LCLS control system.</span>
+<span class="sd">                It can be used in several modes listed here:</span>
+
+<span class="sd">                        Normal mode:</span>
+<span class="sd">                                Builds the GP model from seed_file.mat matrix.</span>
+<span class="sd">                                Can use older Ocelot save files, provided matlab file contains data for all pvs.</span>
+<span class="sd">                        Seeded mode:</span>
+<span class="sd">                                Builds the GP model from a live optimization seed scan.</span>
+<span class="sd">                                In this mode a simplex or other scan run to gather fresh data.</span>
+<span class="sd">                                After &#39;seedIters&#39; of simplex, the data collected is used to build a GP.</span>
+<span class="sd">                                Then GP scanner then runs for the rest of the scan.</span>
+
+<span class="sd">                Both modes need information about the hyperparameters, found in the &#39;hyperparameter.npy&#39; file.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        parent: &#39;self&#39; from the parent GUI that creates this object.</span>
+<span class="sd">                        seed_file (str): Directory string for a matlab file to use as seed data to build model.</span>
+<span class="sd">                        hyp_file (str): Directory string for a hyperparameter csv file.</span>
+<span class="sd">                        seedScanBool (bool): Bool to determine if the scan will use a simplex as seed data.</span>
+<span class="sd">                        seedIters (int): Number of iteration to the the simple seed scan run before swithing to GP.</span>
+<span class="sd">                        seedScaleFactor (float): Mutiplicitive factor passed to the simplex scanner to scale strength of initial simpelx seed scan.</span>
+
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#threading setup</span>
+                <span class="nb">super</span><span class="p">(</span><span class="n">GpScanner</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stoprequest</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>      <span class="o">=</span> <span class="n">parent</span>
+
+                <span class="c">#filenames to load in</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seed_file</span> <span class="o">=</span> <span class="n">seed_file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hyp_file</span>  <span class="o">=</span> <span class="n">hyp_file</span>
+
+                <span class="c">#stuff for simplex seeded scan</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seedScanBool</span> <span class="o">=</span> <span class="n">seedScanBool</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seedIters</span>    <span class="o">=</span> <span class="n">seedIters</span>
+                <span class="c">#load in parameters for simplex</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="n">norm_params_bool</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span> <span class="o">=</span> <span class="n">norm_params_file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="n">norm_amp_coeff</span>
+
+                <span class="c">#error checker</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initErrorCheck</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GpScanner.setup"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.setup">[docs]</a>        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvs</span><span class="p">,</span> <span class="n">objective_func_pv</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="mi">45</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Basic setup procedure for the GP scan objects, input args that are common to optimizer classes.</span>
+
+<span class="sd">                Similar setup funtion with the same args as the ocelot scanner.</span>
+<span class="sd">                Does not contain option to load in MachineInterface and DeviceProperties</span>
+
+<span class="sd">                Could probably just write all this into the init function if you have motivation. </span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs (List[str]): List of the PVs to be used in scan</span>
+<span class="sd">                        objective_func_pv (str): String for the PV for the value to maximize</span>
+<span class="sd">                        iters (int): Number of iterations for the scanner to run</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+                <span class="c">#load in the pvs to scan</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span> <span class="o">=</span> <span class="n">objective_func_pv</span>
+        
+                <span class="c">#number of iterations to scan (hardcode for now)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">iters</span>  <span class="o">=</span> <span class="n">iters</span>
+
+                <span class="c">#build the ocelot machine interface stuff</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">LCLSMachineInterface</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dp</span> <span class="o">=</span> <span class="n">LCLSDeviceProperties</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">setUpDetector</span><span class="p">(</span><span class="n">pvs</span><span class="p">,</span><span class="n">detector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">)</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">setup_data_record</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dp</span><span class="o">.</span><span class="n">get_start_values</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+                
+                <span class="c">#set new timing variables</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">secs_to_ave</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">data_delay</span>
+                <span class="n">total_delay</span>         <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">trim_delay</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">data_delay</span>
+
+                <span class="c"># -------------- GP config setup -------------- #</span>
+                
+                <span class="c">#GP parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numBV</span>    <span class="o">=</span> <span class="mi">30</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xi</span>       <span class="o">=</span> <span class="mf">0.01</span>
+
+                <span class="c">#no input bounds on GP selection for now</span>
+                <span class="n">bnds</span> <span class="o">=</span> <span class="bp">None</span> 
+                
+                <span class="c">#load in hyperparameters from file</span>
+                <span class="n">hyps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadHyperParams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hyp_file</span><span class="p">)</span>
+                
+                <span class="c">#init model</span>
+                <span class="n">dim</span>        <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">OGP</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">hyps</span><span class="p">,</span> <span class="n">maxBV</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numBV</span><span class="p">,</span><span class="n">weighted</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                
+                <span class="c">#load model stuff</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;/u1/lcls/matlab/data/2016/2016-04/2016-04-25/OcelotScan-2016-04-25-181811.mat&#39;</span>
+
+                <span class="c">#if you would lake to load a model from file, use this function</span>
+                <span class="c">#self.model = self.loadModelParams(self.model,filename)</span>
+
+                <span class="c">#interface object defined below, wrapper for ocelot mi file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">interface</span> <span class="o">=</span> <span class="n">GpInterfaceWrapper</span><span class="p">(</span><span class="n">pvs</span><span class="p">,</span><span class="n">total_delay</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dp</span><span class="p">)</span>
+
+                <span class="c">#if this is not a simplex seeded scan, setup the seed data from mat file and build optimizer object</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">seedScanBool</span><span class="p">:</span>
+                        <span class="c">#load seed data file</span>
+                        <span class="n">s_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadSeedData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_file</span><span class="p">)</span>
+                        <span class="c">#optimzer object </span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="n">BOpt</span><span class="o">.</span><span class="n">BayesOpt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">interface</span><span class="p">,</span><span class="n">xi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">,</span> <span class="n">acq_func</span><span class="o">=</span><span class="s">&#39;EI&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">,</span> <span class="n">prior_data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">s_data</span><span class="p">))</span>
+                        <span class="c">#bool to kill scanner thread from GUI</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">False</span> 
+
+</div>
+<div class="viewcode-block" id="GpScanner.loadSeedData"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.loadSeedData">[docs]</a>        <span class="k">def</span> <span class="nf">loadSeedData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Load in the seed data from a matlab ocelot scan file.</span>
+
+<span class="sd">                Input file should formated like OcelotInterface file format. </span>
+<span class="sd">                ie. the datasets that are saved into the matlab data folder.</span>
+
+<span class="sd">                Pulls out the vectors of data from the save file.</span>
+<span class="sd">                Sorts them into the same order as this scanner objects pv list.</span>
+<span class="sd">                The GP wont work if the data is in the wrong order and loaded data is not ordered.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        filename (str): String for the .mat file directory.</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Matrix of ordered data for GP. [ len(num_iterations) x len(num_devices) ]</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">print</span>
+                <span class="n">dout</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+                        <span class="k">print</span> <span class="s">&quot;Loaded seed data from file:&quot;</span><span class="p">,</span><span class="n">filename</span>
+                        <span class="c">#stupid messy formating to unest matlab format</span>
+                        <span class="n">din</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">))[</span><span class="s">&#39;data&#39;</span><span class="p">]</span>
+                        <span class="n">names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">din</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                                <span class="n">pv</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">,</span><span class="s">&quot;_&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                                        <span class="n">x</span> <span class="o">=</span> <span class="n">din</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                                        <span class="n">x</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+                                        <span class="n">dout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                        
+                        <span class="c">#check if the right number of PV were pulled from the file</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dout</span><span class="p">):</span>
+                                <span class="k">print</span> <span class="s">&quot;The seed data file device length unmatched with scan requested PVs!&quot;</span>
+                                <span class="k">print</span> <span class="s">&#39;PV len         = &#39;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)</span>
+                                <span class="k">print</span> <span class="s">&#39;Seed data len = &#39;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dout</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+
+                        <span class="c">#add in the y values </span>
+                        <span class="n">ydata</span> <span class="o">=</span> <span class="n">din</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">dout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">ydata</span><span class="p">)))</span>
+
+                <span class="c"># If passing seed data from a seed scan</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Loaded Seed Data from Seed Scan:&quot;</span>
+                        <span class="n">din</span> <span class="o">=</span> <span class="n">filename</span>
+                        <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">din</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                                        <span class="n">dout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">din</span><span class="p">[</span><span class="n">pv</span><span class="p">])</span>
+                        <span class="n">dout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">din</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">])</span>
+
+                <span class="c">#transpose to format for the GP</span>
+                <span class="n">dout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dout</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+                <span class="c">#dout = dout.loc[~np.isnan(dout).any(axis=1),:]</span>
+                <span class="n">dout</span> <span class="o">=</span> <span class="n">dout</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dout</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+
+                <span class="c">#prints for debug</span>
+                <span class="k">print</span> <span class="s">&quot;[device_1, ..., device_N] detector&quot;</span>
+                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span>
+                <span class="k">print</span> <span class="n">dout</span> 
+                <span class="k">print</span> 
+
+                <span class="k">return</span> <span class="n">dout</span>
+</div>
+<div class="viewcode-block" id="GpScanner.loadHyperParams"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.loadHyperParams">[docs]</a>        <span class="k">def</span> <span class="nf">loadHyperParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to load in the hyperparameters from a .npy file.</span>
+
+<span class="sd">                Sorts data, ordering parameters with this objects pv list.</span>
+<span class="sd">                Formats data into tuple format that the GP model object can accept.</span>
+<span class="sd">                ( [device_1, ..., device_N ], coefficent, noise)</span>
+
+
+<span class="sd">                Args:</span>
+<span class="sd">                        filename (str): String for the file directory.</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        List of hyperparameters, ordered using the UI&#39;s &quot;self.pvs&quot; list.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+                <span class="c">#Load in a npy file containing hyperparameters binned for every 1 GeV of beam energy</span>
+                <span class="n">extention</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+                <span class="k">if</span> <span class="n">extention</span> <span class="o">==</span> <span class="s">&quot;.npy&quot;</span><span class="p">:</span>
+                        <span class="c">#get current L3 beam energy</span>
+                        <span class="n">energy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="s">&quot;BEND:DMP1:400:BDES&quot;</span><span class="p">))))</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">3</span><span class="p">:</span> <span class="n">key</span> <span class="o">=</span> <span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">4</span><span class="p">:</span> <span class="n">key</span> <span class="o">=</span> <span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="k">print</span> <span class="s">&quot;Loading raw data for&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s">&quot;GeV from&quot;</span><span class="p">,</span><span class="n">filename</span>
+                        <span class="k">print</span>
+                        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+                        <span class="n">filedata</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+
+                <span class="c">#sort list to match the UIs PV list order</span>
+                <span class="c">#if they are loaded in the wrong order, the optimzer will get the wrong params for a device</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">hyps</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">match_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="n">names</span> <span class="o">=</span> <span class="n">filedata</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> 
+                        <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                                <span class="n">ave</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">filedata</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                                <span class="n">std</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">filedata</span><span class="p">[</span><span class="n">pv</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                                <span class="k">print</span> <span class="n">pv</span><span class="p">,</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span>
+                                <span class="n">hyp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcLengthScaleHP</span><span class="p">(</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span><span class="p">)</span>
+                                <span class="n">hyps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hyp</span><span class="p">)</span>
+                                <span class="n">match_count</span><span class="o">+=</span><span class="mi">1</span> 
+
+                <span class="k">if</span> <span class="n">match_count</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Number of PVs in list does not match PVs found in hyperparameter file&quot;</span><span class="p">)</span>
+                
+                <span class="c">#get the current mean and std of the chosen detector</span>
+                <span class="n">obj_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span>  <span class="n">obj_func</span><span class="p">[(</span><span class="mi">2599</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="mi">120</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">ave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">obj_func</span><span class="p">[(</span><span class="mi">2599</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="mi">120</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Detector is not a waveform, Using scalar for hyperparameter calc&quot;</span>
+                        <span class="n">ave</span> <span class="o">=</span> <span class="n">obj_func</span>
+                        <span class="c"># Hard code in the std when obj func is a scalar</span>
+                        <span class="c"># Not a great way to deal with this, should probably be fixed</span>
+                        <span class="n">std</span> <span class="o">=</span> <span class="mf">0.1</span> 
+
+                <span class="k">print</span> <span class="s">&quot;DETECTOR AVE&quot;</span><span class="p">,</span><span class="n">ave</span>
+                <span class="k">print</span> <span class="s">&quot;DETECTOR STD&quot;</span><span class="p">,</span><span class="n">std</span>
+
+                <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcAmpCoeffHP</span><span class="p">(</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span><span class="p">)</span>
+                <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calcNoiseHP</span><span class="p">(</span><span class="n">ave</span><span class="p">,</span><span class="n">std</span><span class="p">)</span>
+
+                <span class="n">dout</span> <span class="o">=</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">hyps</span><span class="p">]),</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">noise</span> <span class="p">)</span>
+                <span class="c">#prints for debug</span>
+                <span class="k">print</span>
+                <span class="k">print</span> <span class="s">&quot;Calculated Hyperparameters ( [device_1, ..., device_N ], amplitude coefficent, noise coefficent)&quot;</span>
+                <span class="k">print</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hyps</span><span class="p">)):</span>
+                        <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">hyps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">print</span> <span class="s">&quot;AMP COEFF   = &quot;</span><span class="p">,</span> <span class="n">coeff</span>
+                <span class="k">print</span> <span class="s">&quot;NOISE COEFF = &quot;</span><span class="p">,</span> <span class="n">noise</span>
+                <span class="k">print</span>
+                <span class="k">return</span> <span class="n">dout</span>
+</div>
+<div class="viewcode-block" id="GpScanner.calcLengthScaleHP"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.calcLengthScaleHP">[docs]</a>        <span class="k">def</span> <span class="nf">calcLengthScaleHP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">pv</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to calculate the GP length scale hyperparameters using history data</span>
+
+<span class="sd">                Formula for hyperparameters are from Mitch and some papers he read on the GP.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        ave (float): Mean of the device, binned around current machine energy</span>
+<span class="sd">                        std (float): Standard deviation of the device</span>
+<span class="sd">                        c   (float): Scaling factor to change the output to be larger or smaller, determined empirically</span>
+<span class="sd">                        pv  (str): PV input string to scale hyps depending on pv, not currently used</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float of the calculated length scale hyperparameter</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#for future use</span>
+                <span class="k">if</span> <span class="n">pv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="c">#[pv,val]</span>
+                        <span class="k">pass</span>
+                <span class="c">#+- 1 std around the mean</span>
+                <span class="n">hi</span>  <span class="o">=</span> <span class="n">ave</span><span class="o">+</span><span class="n">std</span>
+                <span class="n">lo</span>  <span class="o">=</span> <span class="n">ave</span><span class="o">-</span><span class="n">std</span>
+                <span class="n">hyp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span> <span class="p">(</span> <span class="p">(</span> <span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="n">hi</span><span class="o">-</span><span class="n">lo</span><span class="p">)</span> <span class="p">)</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="p">)</span>
+                <span class="k">return</span> <span class="n">hyp</span>
+</div>
+<div class="viewcode-block" id="GpScanner.calcAmpCoeffHP"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.calcAmpCoeffHP">[docs]</a>        <span class="k">def</span> <span class="nf">calcAmpCoeffHP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to calculate the GP amplitude hyperparameter</span>
+
+<span class="sd">                Formula for hyperparameters are from Mitch and some papers he read on the GP.</span>
+
+<span class="sd">                First we tried using the standard deviation to calc this but we found it needed to scale with mean instead</span>
+
+
+<span class="sd">                Args:</span>
+<span class="sd">                        ave (float): Mean of of the objective function (GDET or something else) </span>
+<span class="sd">                        std (float): Standard deviation of the objective function</span>
+<span class="sd">                        c (float): Scaling factor to change the output to be larger or smaller, determined empirically</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float of the calculated amplitude hyperparameter</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#We would c = 0.5 to work well, could get changed at some point</span>
+                <span class="n">hyp2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span> <span class="p">(</span> <span class="p">((</span><span class="n">c</span><span class="o">*</span><span class="n">ave</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="p">)</span> <span class="p">)</span> 
+                <span class="k">return</span> <span class="n">hyp2</span>
+</div>
+<div class="viewcode-block" id="GpScanner.calcNoiseHP"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.calcNoiseHP">[docs]</a>        <span class="k">def</span> <span class="nf">calcNoiseHP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ave</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to calculate the GP noise hyperparameter</span>
+
+<span class="sd">                Formula for hyperparameters are from Mitch and some papers he read on the GP.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        ave (float): Mean of of the objective function (GDET or something else) </span>
+<span class="sd">                        std (float): Standard deviation of the objective function</span>
+<span class="sd">                        c (float): Scaling factor to change the output to be larger or smaller, determined empirically</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float of the calculated noise hyperparameter</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">hyp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span> <span class="p">(</span> <span class="n">c</span><span class="o">*</span><span class="n">std</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">+</span><span class="mf">0.01</span> <span class="p">)</span>
+                <span class="k">return</span> <span class="n">hyp</span>
+
+</div>
+<div class="viewcode-block" id="GpScanner.loadModelParams"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.loadModelParams">[docs]</a>        <span class="k">def</span> <span class="nf">loadModelParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to build the GP model using loaded model parameters</span>
+
+<span class="sd">                Can give this method an ocelot save file to load in that files model</span>
+<span class="sd">               </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        filename (str): String for the file directory</span>
+<span class="sd">                        model (object): Takes in a GP model object</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        GP model object with parameters from loaded data</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">model_file</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="s">&#39;data&#39;</span><span class="p">]</span>
+
+                <span class="n">model</span><span class="o">.</span><span class="n">alpha</span>        <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;alpha&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">C</span>            <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">BV</span>           <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;BV&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">covar_params</span> <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;covar_params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">covar_params</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">covar_params</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">model</span><span class="o">.</span><span class="n">covar_params</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">KB</span>           <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;KB&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">KBinv</span>        <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;KBinv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">weighted</span>     <span class="o">=</span> <span class="n">model_file</span><span class="p">[</span><span class="s">&#39;weighted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="k">print</span>
+                <span class="k">print</span> <span class="s">&#39;Loading in new model from:&#39;</span>
+                <span class="k">print</span> <span class="n">filename</span>
+                <span class="k">print</span> 
+
+                <span class="k">return</span> <span class="n">model</span>
+</div>
+<div class="viewcode-block" id="GpScanner.run"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.run">[docs]</a>        <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to start up the GP scanner thread.</span>
+<span class="sd">                This method behaves differently depending on if the user chooses to load data or live seed.</span>
+<span class="sd">                If set to load in a matlab file or model from a matlab save file, the GP scanner executes immediatly.</span>
+<span class="sd">                If set to run a seed optimization scan, it first executes the &#39;runSeed()&#39; method, then the GP.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#if self seed scan, run standard ocelot as a seed</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seedScanBool</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">runSeed</span><span class="p">():</span>
+                                <span class="c">#If the ocelot scanner return False, user aborted in the simplex scan</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                                <span class="k">return</span>
+
+                <span class="c"># weighting for exploration vs exploitation in the GP at the end of scan, alpha array goes from 1 to zero</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">)]</span><span class="o">+</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">50</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="mf">3.0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">41</span><span class="p">,</span><span class="mi">51</span><span class="p">)]</span>
+
+                <span class="c"># iterate though the GP method</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iters</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span><span class="p">:</span>
+                                <span class="c">#disable so user does not start another scan while the data is being saved</span>
+                                <span class="k">break</span>
+                        <span class="c">#check for problems with the beam</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">errorCheck</span><span class="p">()</span>
+                        <span class="c">#advance the optimizer to the next iteration</span>
+                        <span class="c">#self.opt.OptIter(alpha=alpha[i])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">OptIter</span><span class="p">()</span> <span class="c"># no alpha</span>
+                        
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="k">print</span> <span class="s">&quot;Getting last data point&quot;</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">get_sase</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">getPlotData</span><span class="p">()</span>
+                <span class="k">print</span> <span class="s">&quot;Done getting data&quot;</span>
+
+                <span class="c">#save data and update GUI on finish if not run as script</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">):</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">saveModel</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">saveData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+
+                <span class="c">#Re-enable to let user start another scan</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="GpScanner.initErrorCheck"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.initErrorCheck">[docs]</a>        <span class="k">def</span> <span class="nf">initErrorCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initialize PVs and setting used in the errorCheck method.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#setup pvs to check</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_bcs</span>      <span class="o">=</span> <span class="s">&quot;BCS:MCC0:1:BEAMPMSV&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_mps</span>      <span class="o">=</span> <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT989&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_gaurdian</span> <span class="o">=</span> <span class="s">&quot;SIOC:SYS0:ML00:AO466&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_und_tmit</span> <span class="o">=</span> <span class="s">&quot;BPMS:UND1:3290:TMITTH&quot;</span>
+
+                <span class="c">#pv to bypass the error pause</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_bypass</span>  <span class="o">=</span> <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT990&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error_tripped</span> <span class="o">=</span> <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT991&quot;</span>
+
+                <span class="c">#set the unlatch pv to zero</span>
+                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_bypass</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_tripped</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="GpScanner.errorCheck"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.errorCheck">[docs]</a>        <span class="k">def</span> <span class="nf">errorCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method that check the state of BCS, MPS, Gaurdian, UND-TMIT and pauses GP if there is a problem.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c">#check for bad state</span>
+                        <span class="k">if</span> <span class="n">epics</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_bypass</span><span class="p">)</span>     <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&quot;Bypass flag is TRUE&quot;</span>
+                        <span class="k">elif</span> <span class="n">epics</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_bcs</span><span class="p">)</span>      <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&quot;BCS tripped&quot;</span>
+                        <span class="k">elif</span> <span class="n">epics</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_mps</span><span class="p">)</span>      <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&quot;MPS tripped&quot;</span>
+                        <span class="k">elif</span> <span class="n">epics</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_gaurdian</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&quot;Gaurdian tripped&quot;</span>
+                        <span class="k">elif</span> <span class="n">epics</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_und_tmit</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">5.0e7</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&quot;UND Tmit Low&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="n">out_msg</span><span class="o">=</span><span class="s">&#39;Everything Okay&#39;</span>
+
+                        <span class="c">#exit if the stop button is set</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="s">&quot;SIOC:SYS0:ML03:AO702&quot;</span><span class="p">):</span>
+                                <span class="k">break</span>
+
+                        <span class="c">#set the error check message</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span> <span class="p">(</span><span class="s">&quot;SIOC:SYS0:ML00:CA000&quot;</span><span class="p">,</span><span class="n">out_msg</span><span class="p">)</span>
+                        <span class="k">print</span> <span class="n">out_msg</span>
+
+                        <span class="c">#break out if error check is bypassed</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">out_msg</span><span class="o">==</span><span class="s">&quot;Bypass flag is TRUE&quot;</span><span class="p">):</span>
+                                <span class="k">break</span>
+
+                        <span class="c">#break out if everything is okay</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">out_msg</span><span class="o">==</span><span class="s">&quot;Everything Okay&quot;</span><span class="p">):</span>
+                                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_tripped</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+                                <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_tripped</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="GpScanner.saveModel"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.saveModel">[docs]</a>        <span class="k">def</span> <span class="nf">saveModel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Add GP model parameters to the save file.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#add in extra GP model data to save</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;alpha&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">alpha</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;C&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">C</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;BV&quot;</span><span class="p">]</span>           <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">BV</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;covar_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">covar_params</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;KB&quot;</span><span class="p">]</span>           <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">KB</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;KBinv&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">KBinv</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;weighted&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">weighted</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;noise_var&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">noise_var</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&quot;pv_list&quot;</span><span class="p">]</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span>
+        </div>
+<div class="viewcode-block" id="GpScanner.runSeed"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpScanner.runSeed">[docs]</a>        <span class="k">def</span> <span class="nf">runSeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to run if user has chose a to the live simplex seed scan mode.</span>
+
+<span class="sd">                1). Creates a new simplex/scipy OcelotScanner object.</span>
+<span class="sd">                2). Takes in the current mi and dp objects so that the saved data comes out in the same file</span>
+<span class="sd">                3). Runs the simplex/scipy for &#39;self.seedIters&#39; number of iterations</span>
+<span class="sd">                4). Takes the data fromthe simplex/scipy scan and uses that to start the GP</span>
+
+<span class="sd">                There is some wierd logic here to make sure that the both scanners exit if user hits abort</span>
+<span class="sd">                Not ideal and could get fixed later</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        False: If the user choose to abort durring the seed optimize</span>
+<span class="sd">                        True:  If the user did not abort</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+                <span class="c">#set up ocelot scan, simplex default</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seedThread</span> <span class="o">=</span> <span class="n">OcelotScanner</span><span class="p">(</span>
+                                <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span>
+                                <span class="n">method</span><span class="o">=</span><span class="s">&#39;simplex&#39;</span><span class="p">,</span>
+                                <span class="n">norm_params_bool</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">,</span>
+                                <span class="n">norm_params_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span><span class="p">,</span>
+                                <span class="n">norm_amp_coeff</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">,</span> 
+                                <span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">,</span> 
+                                <span class="bp">self</span><span class="o">.</span><span class="n">seedIters</span><span class="p">,</span> <span class="c">#add in a different value for number of iters here</span>
+                                <span class="n">mi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> 
+                                <span class="n">dp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dp</span><span class="p">)</span>
+                <span class="c">#use the seedScan interfaces for GP</span>
+                <span class="n">mi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">mi</span>
+                <span class="n">dp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">dp</span>
+                <span class="c">#</span>
+                <span class="c">#guimode=false -&gt; dont try to save data or stop gui on scan completion</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">guimode</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
+                        <span class="c">#exit if seed thread was killed by user</span>
+                        <span class="k">return</span> <span class="bp">False</span>
+
+                <span class="c">#use the simplex data saved in the mi object as a seed for the GP</span>
+                <span class="n">s_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadSeedData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                
+                <span class="c">#Make the GP optimizer object after acquiring seed data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">mi</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dp</span> <span class="o">=</span> <span class="n">dp</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="n">BOpt</span><span class="o">.</span><span class="n">BayesOpt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interface</span><span class="p">,</span> <span class="n">xi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">,</span> <span class="n">acq_func</span><span class="o">=</span><span class="s">&#39;EI&#39;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prior_data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">s_data</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="c">#tell the mi that it should no longer normalize output to control system after simplex seed finishes</span>
+                <span class="c">#otherwise the mi class will try and caput crazy values</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="GpInterfaceWrapper"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpInterfaceWrapper">[docs]</a><span class="k">class</span> <span class="nc">GpInterfaceWrapper</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class that acts as an interface to the GP code.</span>
+
+<span class="sd">        GP needed different getter and setter nameing conventions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs</span><span class="p">,</span> <span class="n">delay</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">dp</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Init method for the GP wrapper.</span>
+
+<span class="sd">                The GP needs just two function - getter and setter.</span>
+<span class="sd">                This class mostly to rename the methods and format the data correctly for the GP.</span>
+
+<span class="sd">                PV list should be the same order as the list in the GpScanner class.</span>
+<span class="sd">                The delay time is takes to be the sum of time and data delay times, passed in as a single float.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs (List[str]): List of the PVs to be used in scan</span>
+<span class="sd">                        delay (float): Time delay in seconds that the GP should wait between iterations</span>
+<span class="sd">                        mi: MachineInterface object from the mint file</span>
+<span class="sd">                        dp: DeviceProperties object frot the mint file</span>
+<span class="sd">                </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">mi</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dp</span> <span class="o">=</span> <span class="n">dp</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">delay</span>
+
+<div class="viewcode-block" id="GpInterfaceWrapper.getState"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpInterfaceWrapper.getState">[docs]</a>        <span class="k">def</span> <span class="nf">getState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; GP getter wrapper.&quot;&quot;&quot;</span>
+
+                <span class="c"># PUT SOME CATCH IN HERE TO KEEP GP FROM GETTING BAD POINTS!</span>
+
+                <span class="n">y_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">get_sase</span><span class="p">()</span>
+                <span class="n">x_new</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="n">x_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="n">pv</span><span class="p">))</span>
+                <span class="c">#reformating datatype for GP </span>
+                <span class="n">x_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span><span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">y_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">y_new</span><span class="p">]])</span>
+                <span class="k">print</span> <span class="s">&quot;GET STATE&quot;</span><span class="p">,</span><span class="n">x_new</span><span class="p">,</span><span class="n">y_new</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">x_new</span><span class="p">,</span><span class="n">y_new</span><span class="p">)</span>
+                                 </div>
+<div class="viewcode-block" id="GpInterfaceWrapper.setX"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.scannerThreads.GpInterfaceWrapper.setX">[docs]</a>        <span class="k">def</span> <span class="nf">setX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x_next</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; GP setter wrapper.&quot;&quot;&quot;</span>
+
+                <span class="n">x_next</span> <span class="o">=</span> <span class="n">x_next</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">print</span> <span class="n">x_next</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">pv</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x_next</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+                        <span class="k">print</span> <span class="s">&quot;PUT STATE&quot;</span><span class="p">,</span><span class="n">pv</span><span class="p">,</span><span class="n">val</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

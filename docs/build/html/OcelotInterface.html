@@ -1,0 +1,859 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface Package &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ocelotinterface-package">
+<h1>OcelotInterface Package<a class="headerlink" href="#ocelotinterface-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">OcelotInterface</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-OcelotInterface.__init__"></span></div>
+<div class="section" id="module-OcelotInterface.OcelotInterface">
+<span id="ocelotinterface-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">OcelotInterface</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.OcelotInterface" title="Permalink to this headline">¶</a></h2>
+<p>Ocelot GUI, interface for running and testing accelerator optimization methods</p>
+<p>This file primarily contains the code for the UI and GUI
+The scanner classes are contained in an external file, scannerThreads.py
+The resetpanel widget is also contained in a separate module, resetpanel</p>
+<p>Tyler Cope, 2016</p>
+<dl class="class">
+<dt id="OcelotInterface.OcelotInterface.ItemSample">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.OcelotInterface.</tt><tt class="descname">ItemSample</tt><big>(</big><em>item</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#ItemSample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.ItemSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pyqtgraph.graphicsItems.GraphicsWidget.GraphicsWidget</span></tt></p>
+<p>MORE STUFF FOR CUSTOM LEGEND</p>
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.ItemSample.boundingRect">
+<tt class="descname">boundingRect</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#ItemSample.boundingRect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.ItemSample.boundingRect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.ItemSample.paint">
+<tt class="descname">paint</tt><big>(</big><em>p</em>, <em>*args</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#ItemSample.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.ItemSample.paint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.OcelotInterface.</tt><tt class="descname">OcelotInterfaceWindow</tt><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QFrame</span></tt></p>
+<p>Main class for the GUI application</p>
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.addList">
+<tt class="descname">addList</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.addList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.addPlots">
+<tt class="descname">addPlots</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.addPlots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.addPlots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the GUIs plots and labels on startup.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.changeDRV">
+<tt class="descname">changeDRV</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.changeDRV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set boolian on whether the scan should use corrector DRVH and DRVL to set range.</p>
+<p>This only applies to the simplex/scipy minimize methods, not the GP so far.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.devmode">
+<tt class="descname">devmode</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.devmode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.devmode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to setup a development mode for quick testing.</p>
+<p>This method contains settings for a dev mode on GUI startup.</p>
+<dl class="docutils">
+<dt>Uses the following PVs as dev devices:</dt>
+<dd>SIOC:SYS0:ML00:CALCOUT997
+SIOC:SYS0:ML00:CALCOUT998
+SIOC:SYS0:ML00:CALCOUT999
+SIOC:SYS0:ML00:CALCOUT000</dd>
+<dt>Uses the following PV as an objective function:</dt>
+<dd>SIOC:SYS0:ML00:CALCOUT993</dd>
+</dl>
+<p>Best used with the epics dev control panel fromt he GUIs options panel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.disableStuff">
+<tt class="descname">disableStuff</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.disableStuff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.disableStuff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to disable development functionality durring production use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.emptyTable">
+<tt class="descname">emptyTable</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.emptyTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.getData">
+<tt class="descname">getData</tt><big>(</big><em>pvNAME=None</em>, <em>value=None</em>, <em>char_value=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.getData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.getPlotData">
+<tt class="descname">getPlotData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.getPlotData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.getPlotData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collects data and updates plot on every GUI clock cycle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.launchHeatMap">
+<tt class="descname">launchHeatMap</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.launchHeatMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.launchHeatMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launches script to display a GP heatmap of two PVs selected from table.</p>
+<p>Can only show data from the GUIs last scan.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.loadStyleSheet">
+<tt class="descname">loadStyleSheet</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.loadStyleSheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.loadStyleSheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the dark GUI theme from a css file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logTextVerbose">
+<tt class="descname">logTextVerbose</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.logTextVerbose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logTextVerbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logbook method with extra info in text string&gt;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logbook">
+<tt class="descname">logbook</tt><big>(</big><em>extra_log_text='default'</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.logbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logbook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a screenshot to the physics logbook.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>extra_log_text (str): string to set if verbose text should be printed to logbook. &#8216;default&#8217; prints only gain and algorithm</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.messageOut">
+<tt class="descname">messageOut</tt><big>(</big><em>pvName=None</em>, <em>value=None</em>, <em>char_value=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.messageOut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.randColor">
+<tt class="descname">randColor</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.randColor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.randColor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random line color for each device plotted.</p>
+<dl class="docutils">
+<dt>Returns: </dt>
+<dd>QColor object of a random color</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScan">
+<tt class="descname">runScan</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.runScan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to start the scanner thread object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScript">
+<tt class="descname">runScript</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.runScript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to run a set of scripted commands throught the GUI.</p>
+<p>This is used in development/MD for quickly scanning many sets in sequence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.saveData">
+<tt class="descname">saveData</tt><big>(</big><em>data_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.saveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.saveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save scan data to the physics matlab data directory.</p>
+<p>Uses module matlog to save data dict in machine interface file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanFinished">
+<tt class="descname">scanFinished</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.scanFinished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanFinished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the GUI after a scan is complete.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanMethodSelect">
+<tt class="descname">scanMethodSelect</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.scanMethodSelect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanMethodSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets scanner method from options panel combo box selection.</p>
+<p>This method executes from the runScan() method, when the UI &#8220;Start Scan&#8221; button is pressed.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Selected scanner object 
+These objects are contrained in the scannerThreads.py file</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.screenShot">
+<tt class="descname">screenShot</tt><big>(</big><em>filename</em>, <em>filetype</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.screenShot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.screenShot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a screenshot of the whole gui window, saves png and ps images to file</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>fileName (str): Directory string of where to save the file
+filetype (str): String of the filetype to save</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scriptScan">
+<tt class="descname">scriptScan</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.scriptScan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scriptScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single scan to run in the script.</p>
+<p>The sequency of events:
+* Select optimizer type based on index arg
+* Execute runScan() method
+* Start the wait() method until thread finishes
+* Send data to logbook (data file saved separatly automaticaly)
+* Reset all devices to start</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>index (int): Integer to choose algorithm method from combobox</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.selectQuads">
+<tt class="descname">selectQuads</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.selectQuads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setDataDelay">
+<tt class="descname">setDataDelay</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setDataDelay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setDataDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select time for objective method data collection time.</p>
+<p>Scanner will wait this long to collect new data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setDevice">
+<tt class="descname">setDevice</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setDevice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to select new Device to Scan, mnust be valid PV.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGetData">
+<tt class="descname">setGetData</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGetData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpHyps">
+<tt class="descname">setGpHyps</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setGpHyps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpHyps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set directory string to use for the GP hyper parameters file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeed">
+<tt class="descname">setGpSeed</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setGpSeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set directory string to use for the GP scanner seed file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeedIters">
+<tt class="descname">setGpSeedIters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setGpSeedIters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeedIters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set number of iterations to run the simplex scan before GP runs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSimplexSeed">
+<tt class="descname">setGpSimplexSeed</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setGpSimplexSeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSimplexSeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the bool to run GP in a simplex seed mode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setListener">
+<tt class="descname">setListener</tt><big>(</big><em>state</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setListener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set epics flag inducating that this GUI is running.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>state (bool): Bools to set the PV stats flag true or false</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setNormAmpCoeff">
+<tt class="descname">setNormAmpCoeff</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setNormAmpCoeff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setNormAmpCoeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the scaling parameter for the simplex/scipy normalization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setObFunc">
+<tt class="descname">setObFunc</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setObFunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setObFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to select new objective function PV (GDET).</p>
+<p>Typically the gas detector, but it could be some other calc PV.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setRate">
+<tt class="descname">setRate</tt><big>(</big><em>pvName=None</em>, <em>value=None</em>, <em>char_value=None</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setRate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setScale">
+<tt class="descname">setScale</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set boolian on whether the scan should use Scale PV for Objective function PV.</p>
+<p>This only applies to the simplex/scipy minimize methods, not the GP so far.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setScanParameters">
+<tt class="descname">setScanParameters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setScanParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setScanParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize default parameters for a scan when the GUI starts up.</p>
+<p>Creates connection for parameter changes on options panel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrim">
+<tt class="descname">setTrim</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set boolian on whether the scan should use trim PV for devices devices.</p>
+<p>This only applies to the simplex/scipy minimize methods, not the GP so far.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrimDelay">
+<tt class="descname">setTrimDelay</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setTrimDelay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrimDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a new trim time for a device from GUI line edit.</p>
+<p>Scanner will wait this long before starting data acquisition.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrimPV">
+<tt class="descname">setTrimPV</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrimPV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setUpMultiPlot">
+<tt class="descname">setUpMultiPlot</tt><big>(</big><em>pvs</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.setUpMultiPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setUpMultiPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset plots when a new scan is started.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.useCall">
+<tt class="descname">useCall</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.useCall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set boolian on whether the scan should wait for change on objective funciton.</p>
+<p>This only applies to the simplex/scipy minimize methods, not the GP so far.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.OcelotInterfaceWindow.wait">
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#OcelotInterfaceWindow.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to wait for thread completion.</p>
+<p>When running in script mode for development, this method waits until the scan thread has finished to launch the next test scan. Without this, the GUI try to start may threads at the same time instead of ordered,</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.OcelotInterface.customLegend">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.OcelotInterface.</tt><tt class="descname">customLegend</tt><big>(</big><em>size=None</em>, <em>offset=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#customLegend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.customLegend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pyqtgraph.graphicsItems.LegendItem.LegendItem</span></tt></p>
+<p>STUFF FOR PG CUSTOM LEGEND (subclassed from pyqtgraph).
+Class responsible for drawing a single item in a LegendItem (sans label).
+This may be subclassed to draw custom graphics in a Legend.</p>
+<dl class="method">
+<dt id="OcelotInterface.OcelotInterface.customLegend.addItem">
+<tt class="descname">addItem</tt><big>(</big><em>item</em>, <em>name</em>, <em>color='CCFF00'</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#customLegend.addItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.customLegend.addItem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.OcelotInterface.main">
+<tt class="descclassname">OcelotInterface.OcelotInterface.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/OcelotInterface.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.OcelotInterface.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Funciton to start up the main program.</p>
+<p>Slecting a PV parameter set:
+If launched from the command line will take an argument with the filename of a parameter file.
+If no argv[1] is provided, the default list in ./parameters/lclsparams is used.</p>
+<p>Development mode:
+If devmode == False - GUI defaults to normal parameter list, defaults to nelder mead simplex
+if devmode == True  - GUI uses 4 development matlab PVs and loaded settings in the method &#8220;devmode()&#8221;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.UIOcelotInterface">
+<span id="uiocelotinterface-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">UIOcelotInterface</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.UIOcelotInterface" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="OcelotInterface.UIOcelotInterface.Ui_Form">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.UIOcelotInterface.</tt><tt class="descname">Ui_Form</tt><a class="reference internal" href="_modules/OcelotInterface/UIOcelotInterface.html#Ui_Form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.UIOcelotInterface.Ui_Form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.UIOcelotInterface.Ui_Form.retranslateUi">
+<tt class="descname">retranslateUi</tt><big>(</big><em>Form</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/UIOcelotInterface.html#Ui_Form.retranslateUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.UIOcelotInterface.Ui_Form.retranslateUi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.UIOcelotInterface.Ui_Form.setupUi">
+<tt class="descname">setupUi</tt><big>(</big><em>Form</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/UIOcelotInterface.html#Ui_Form.setupUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.UIOcelotInterface.Ui_Form.setupUi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.epicsGet">
+<span id="epicsget-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">epicsGet</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.epicsGet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="OcelotInterface.epicsGet.epicsGet">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.epicsGet.</tt><tt class="descname">epicsGet</tt><a class="reference internal" href="_modules/OcelotInterface/epicsGet.html#epicsGet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.epicsGet.epicsGet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="OcelotInterface.epicsGet.epicsGet.caget">
+<tt class="descname">caget</tt><big>(</big><em>device_name</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/epicsGet.html#epicsGet.caget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.epicsGet.epicsGet.caget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.scannerThreads">
+<span id="scannerthreads-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">scannerThreads</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.scannerThreads" title="Permalink to this headline">¶</a></h2>
+<p>File to contain scanner classes to be used in the ocelot interface GUI</p>
+<p>Tyler Cope, 2016</p>
+<dl class="class">
+<dt id="OcelotInterface.scannerThreads.GpInterfaceWrapper">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.scannerThreads.</tt><tt class="descname">GpInterfaceWrapper</tt><big>(</big><em>pvs</em>, <em>delay</em>, <em>mi</em>, <em>dp</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpInterfaceWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpInterfaceWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that acts as an interface to the GP code.</p>
+<p>GP needed different getter and setter nameing conventions.</p>
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpInterfaceWrapper.getState">
+<tt class="descname">getState</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpInterfaceWrapper.getState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpInterfaceWrapper.getState" title="Permalink to this definition">¶</a></dt>
+<dd><p>GP getter wrapper.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpInterfaceWrapper.setX">
+<tt class="descname">setX</tt><big>(</big><em>x_next</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpInterfaceWrapper.setX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpInterfaceWrapper.setX" title="Permalink to this definition">¶</a></dt>
+<dd><p>GP setter wrapper.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.scannerThreads.GpScanner">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.scannerThreads.</tt><tt class="descname">GpScanner</tt><big>(</big><em>parent=None</em>, <em>seed_file='parameters/simSeed.mat'</em>, <em>hyp_file='parameters/hyperparameters.npy'</em>, <em>seedScanBool=False</em>, <em>seedIters=5</em>, <em>norm_amp_coeff=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<p>Class to setup gaussian process bayes optimization scanner.</p>
+<p>Similar style to the scipy/simplex ocelot scanner class.
+Uses the GP bayes optimization package writen by Mitch McIntire</p>
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.calcAmpCoeffHP">
+<tt class="descname">calcAmpCoeffHP</tt><big>(</big><em>ave</em>, <em>std</em>, <em>c=0.5</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.calcAmpCoeffHP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.calcAmpCoeffHP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the GP amplitude hyperparameter</p>
+<p>Formula for hyperparameters are from Mitch and some papers he read on the GP.</p>
+<p>First we tried using the standard deviation to calc this but we found it needed to scale with mean instead</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ave (float): Mean of of the objective function (GDET or something else) 
+std (float): Standard deviation of the objective function
+c (float): Scaling factor to change the output to be larger or smaller, determined empirically</dd>
+<dt>Returns:</dt>
+<dd>Float of the calculated amplitude hyperparameter</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.calcLengthScaleHP">
+<tt class="descname">calcLengthScaleHP</tt><big>(</big><em>ave</em>, <em>std</em>, <em>c=1.0</em>, <em>pv=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.calcLengthScaleHP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.calcLengthScaleHP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the GP length scale hyperparameters using history data</p>
+<p>Formula for hyperparameters are from Mitch and some papers he read on the GP.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ave (float): Mean of the device, binned around current machine energy
+std (float): Standard deviation of the device
+c   (float): Scaling factor to change the output to be larger or smaller, determined empirically
+pv  (str): PV input string to scale hyps depending on pv, not currently used</dd>
+<dt>Returns:</dt>
+<dd>Float of the calculated length scale hyperparameter</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.calcNoiseHP">
+<tt class="descname">calcNoiseHP</tt><big>(</big><em>ave</em>, <em>std</em>, <em>c=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.calcNoiseHP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.calcNoiseHP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the GP noise hyperparameter</p>
+<p>Formula for hyperparameters are from Mitch and some papers he read on the GP.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>ave (float): Mean of of the objective function (GDET or something else) 
+std (float): Standard deviation of the objective function
+c (float): Scaling factor to change the output to be larger or smaller, determined empirically</dd>
+<dt>Returns:</dt>
+<dd>Float of the calculated noise hyperparameter</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.loadHyperParams">
+<tt class="descname">loadHyperParams</tt><big>(</big><em>filename</em>, <em>gain=1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.loadHyperParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.loadHyperParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to load in the hyperparameters from a .npy file.</p>
+<p>Sorts data, ordering parameters with this objects pv list.
+Formats data into tuple format that the GP model object can accept.
+( [device_1, ..., device_N ], coefficent, noise)</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filename (str): String for the file directory.</dd>
+<dt>Returns:</dt>
+<dd>List of hyperparameters, ordered using the UI&#8217;s &#8220;self.pvs&#8221; list.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.loadModelParams">
+<tt class="descname">loadModelParams</tt><big>(</big><em>model</em>, <em>filename</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.loadModelParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.loadModelParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to build the GP model using loaded model parameters</p>
+<p>Can give this method an ocelot save file to load in that files model</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filename (str): String for the file directory
+model (object): Takes in a GP model object</dd>
+<dt>Returns:</dt>
+<dd>GP model object with parameters from loaded data</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.loadSeedData">
+<tt class="descname">loadSeedData</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.loadSeedData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.loadSeedData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load in the seed data from a matlab ocelot scan file.</p>
+<p>Input file should formated like OcelotInterface file format. 
+ie. the datasets that are saved into the matlab data folder.</p>
+<p>Pulls out the vectors of data from the save file.
+Sorts them into the same order as this scanner objects pv list.
+The GP wont work if the data is in the wrong order and loaded data is not ordered.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filename (str): String for the .mat file directory.</dd>
+<dt>Returns:</dt>
+<dd>Matrix of ordered data for GP. [ len(num_iterations) x len(num_devices) ]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to start up the GP scanner thread.
+This method behaves differently depending on if the user chooses to load data or live seed.
+If set to load in a matlab file or model from a matlab save file, the GP scanner executes immediatly.
+If set to run a seed optimization scan, it first executes the &#8216;runSeed()&#8217; method, then the GP.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.runSeed">
+<tt class="descname">runSeed</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.runSeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.runSeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to run if user has chose a to the live simplex seed scan mode.</p>
+<p>1). Creates a new simplex/scipy OcelotScanner object.
+2). Takes in the current mi and dp objects so that the saved data comes out in the same file
+3). Runs the simplex/scipy for &#8216;self.seedIters&#8217; number of iterations
+4). Takes the data fromthe simplex/scipy scan and uses that to start the GP</p>
+<p>There is some wierd logic here to make sure that the both scanners exit if user hits abort
+Not ideal and could get fixed later</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>False: If the user choose to abort durring the seed optimize
+True:  If the user did not abort</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.saveModel">
+<tt class="descname">saveModel</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.saveModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.saveModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add GP model parameters to the save file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.GpScanner.setup">
+<tt class="descname">setup</tt><big>(</big><em>pvs</em>, <em>objective_func_pv</em>, <em>iters=45</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#GpScanner.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.GpScanner.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic setup procedure for the GP scan objects, input args that are common to optimizer classes.</p>
+<p>Similar setup funtion with the same args as the ocelot scanner.
+Does not contain option to load in MachineInterface and DeviceProperties</p>
+<p>Could probably just write all this into the init function if you have motivation.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pvs (List[str]): List of the PVs to be used in scan
+objective_func_pv (str): String for the PV for the value to maximize
+iters (int): Number of iterations for the scanner to run</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.scannerThreads.OcelotScanner">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.scannerThreads.</tt><tt class="descname">OcelotScanner</tt><big>(</big><em>parent=None</em>, <em>method='simplex'</em>, <em>norm_amp_coeff=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#OcelotScanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.OcelotScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<p>This is a threaded class that runs the simplex and other scipy methods from ocelot.</p>
+<p>Uses the lcls machine interface and device properties class to interface with epics.</p>
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.OcelotScanner.loadNormFile">
+<tt class="descname">loadNormFile</tt><big>(</big><em>filename</em>, <em>amplitude_coeff=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#OcelotScanner.loadNormFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.OcelotScanner.loadNormFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.OcelotScanner.loadNormFile2">
+<tt class="descname">loadNormFile2</tt><big>(</big><em>filename</em>, <em>amplitude_coeff=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#OcelotScanner.loadNormFile2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.OcelotScanner.loadNormFile2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load in precalculated normalization parameters from a file.</p>
+<p>This file is generated using the &#8216;archiveRetrieve&#8217; module.
+The file should be CSV formatted,ie:</p>
+<blockquote>
+<div>PV1,mu1,sigma1
+PV2,mu2,sigma2
+...</div></blockquote>
+<p>The amplitude coefficent input arg is used to quickly modify the aproximate strength of the scan. 
+A larger coefficent will make the optimizer take lager steps (more exploration).</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>filename (str): String for the file directory
+amplitude_coeff (float): Scaling factor to modify device range</dd>
+<dt>Returns:</dt>
+<dd>inputNormParams (dict): Dict of normalization coefficents {&#8216;keys&#8217;: [mu,sig]}</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.OcelotScanner.run">
+<tt class="descname">run</tt><big>(</big><em>guimode=True</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#OcelotScanner.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.OcelotScanner.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to start up the thread.</p>
+<p>In this class, the squence length is only one, using all the PVs from the setup funciton.
+If guimode is selected, when the scan is finished the GUI update clock stops and data is saved to file.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>guimode (bool): Bool that tells parent GUI to reset UI and save data.
+If running a GP seeded scan, dont reset GUI after simpelx is done</dd>
+<dt>Returns:</dt>
+<dd>The kill status (bool) of optimizer object if not in GUI mode
+This is used in the case that this object is used in seeded mode for the GP optimizer</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.scannerThreads.OcelotScanner.setup">
+<tt class="descname">setup</tt><big>(</big><em>pvs</em>, <em>objective_func_pv</em>, <em>iters=45</em>, <em>mi=None</em>, <em>dp=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/scannerThreads.html#OcelotScanner.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.scannerThreads.OcelotScanner.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic setup of the ocelot scanner.</p>
+<p>The setup method is called from the GUI when a scan is started.
+This method should have the same arguments for each scanner.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pvs (List[str]): List of the PVs to be used in scan
+objective_func_pv (str): String for the PV for the value to maximize
+iters (int): Number of iterations for the scanner to run
+mi: MachineInterface object from the mint file
+dp: DeviceProperties oject fromt the mint file</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.taperThread">
+<span id="taperthread-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">taperThread</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.taperThread" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="OcelotInterface.taperThread.Taper">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.taperThread.</tt><tt class="descname">Taper</tt><big>(</big><em>parent=None</em>, <em>initPVs=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.getPVs">
+<tt class="descname">getPVs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.getPVs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.getPVs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.getTaperCoefficients">
+<tt class="descname">getTaperCoefficients</tt><big>(</big><em>k</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.getTaperCoefficients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.getTaperCoefficients" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.get_value">
+<tt class="descname">get_value</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.get_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.isTaperPV">
+<tt class="descname">isTaperPV</tt><big>(</big><em>pv</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.isTaperPV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.isTaperPV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.resetTaper">
+<tt class="descname">resetTaper</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.resetTaper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.resetTaper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.setTaper">
+<tt class="descname">setTaper</tt><big>(</big><em>p</em>, <em>moveUnds=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.setTaper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.setTaper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.stillMoving">
+<tt class="descname">stillMoving</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.stillMoving"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.stillMoving" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.taper">
+<tt class="descname">taper</tt><big>(</big><em>x</em>, <em>linAmp</em>, <em>postSatStart</em>, <em>postSatAmp</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.taper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.taper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.taperParams">
+<tt class="descname">taperParams</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.taperParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.taperParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.undsOut">
+<tt class="descname">undsOut</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.undsOut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.undsOut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.Taper.withinTol">
+<tt class="descname">withinTol</tt><big>(</big><em>newTaper</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#Taper.withinTol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.Taper.withinTol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.taperThread.taperWatcher">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.taperThread.</tt><tt class="descname">taperWatcher</tt><big>(</big><em>updateTime=0.1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#taperWatcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.taperWatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.taperThread.taperWatcher.checkTaperPVs">
+<tt class="descname">checkTaperPVs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#taperWatcher.checkTaperPVs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.taperWatcher.checkTaperPVs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.taperThread.taperWatcher.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/taperThread.html#taperWatcher.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.taperThread.taperWatcher.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="OcelotInterface.GP.html">GP Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.BasicInterfaces"><tt class="docutils literal"><span class="pre">BasicInterfaces</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.BayesOpt_oldcopy"><tt class="docutils literal"><span class="pre">BayesOpt_oldcopy</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.BayesOptimization"><tt class="docutils literal"><span class="pre">BayesOptimization</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.GP"><tt class="docutils literal"><span class="pre">GP</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.GP_utils"><tt class="docutils literal"><span class="pre">GP_utils</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.GPtools"><tt class="docutils literal"><span class="pre">GPtools</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.OnlineGP"><tt class="docutils literal"><span class="pre">OnlineGP</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.SPGPmodel"><tt class="docutils literal"><span class="pre">SPGPmodel</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#discrete-test-script-module"><tt class="docutils literal"><span class="pre">discrete_test_script</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.example_script"><tt class="docutils literal"><span class="pre">example_script</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.lcls_opt_script"><tt class="docutils literal"><span class="pre">lcls_opt_script</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.GP.html#module-OcelotInterface.GP.minimize"><tt class="docutils literal"><span class="pre">minimize</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="OcelotInterface.mint.html">mint Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.mint.html#module-OcelotInterface.mint.lcls_interface"><tt class="docutils literal"><span class="pre">lcls_interface</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.mint.html#module-OcelotInterface.mint.lcls_tune"><tt class="docutils literal"><span class="pre">lcls_tune</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.mint.html#module-OcelotInterface.mint.mint"><tt class="docutils literal"><span class="pre">mint</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="OcelotInterface.parameters.html">parameters Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="OcelotInterface.resetpanel.html">resetpanel Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.resetpanel.html#module-OcelotInterface.resetpanel.UIresetpanel"><tt class="docutils literal"><span class="pre">UIresetpanel</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.resetpanel.html#module-OcelotInterface.resetpanel.resetpanel"><tt class="docutils literal"><span class="pre">resetpanel</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.resetpanel.html#module-OcelotInterface.resetpanel.resetpanelbox"><tt class="docutils literal"><span class="pre">resetpanelbox</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="OcelotInterface.test.html">test Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.test.html#module-OcelotInterface.test.bugtest"><tt class="docutils literal"><span class="pre">bugtest</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.test.html#module-OcelotInterface.test.setDevsTest"><tt class="docutils literal"><span class="pre">setDevsTest</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.test.html#module-OcelotInterface.test.testScanners"><tt class="docutils literal"><span class="pre">testScanners</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OcelotInterface.test.html#module-OcelotInterface.test.yOutTest"><tt class="docutils literal"><span class="pre">yOutTest</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">OcelotInterface Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">OcelotInterface</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.OcelotInterface"><tt class="docutils literal"><span class="pre">OcelotInterface</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.UIOcelotInterface"><tt class="docutils literal"><span class="pre">UIOcelotInterface</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.epicsGet"><tt class="docutils literal"><span class="pre">epicsGet</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.scannerThreads"><tt class="docutils literal"><span class="pre">scannerThreads</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.taperThread"><tt class="docutils literal"><span class="pre">taperThread</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/OcelotInterface.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

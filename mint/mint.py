@@ -1,0 +1,269 @@
+import numpy as np
+import scipy.optimize as opt
+from time import sleep
+import epics
+from threading import Thread
+import scipy
+from scipy import optimize
+from opt_objects import *
+from GP.BayesOptimization import *
+from GP.OnlineGP import OGP
+import pandas as pd
+import sklearn
+
+
+class Minimizer(object):
+    def __init__(self):
+        self.maximize = False
+
+    def minimize(self, error_func, x):
+        pass
+
+class Simplex(Minimizer):
+    def __init__(self):
+        super(Simplex, self).__init__()
+        self.xtol = 1e-5
+        self.dev_steps = None
+
+    def minimize(self,  error_func, x):
+        if self.dev_steps == None or len(self.dev_steps) != len(x):
+            print("initial simplex is None")
+            isim = None
+        elif np.count_nonzero(self.dev_steps) != len(x):
+            print("There is zero step. Initial simplex is None")
+            isim = None
+        else:
+            isim = np.zeros((len(x) + 1, len(x)))
+            isim[0, :] = x
+            for i in range(len(x)):
+                vertex = np.zeros(len(x))
+                vertex[i] = self.dev_steps[i]
+                isim[i + 1, :] = x + vertex
+            print("ISIM = ", isim)
+        if scipy.__version__ < "0.18":
+            res = optimize.fmin(error_func, x, maxiter=self.max_iter, maxfun=self.max_iter, xtol=self.xtol)
+        else:
+            res = optimize.fmin(error_func, x, maxiter=self.max_iter, maxfun=self.max_iter, xtol=self.xtol, initial_simplex=isim)
+        return res
+
+class GaussProcess(Minimizer):
+    def __init__(self):
+        super(GaussProcess,self).__init__()
+        self.seed_timeout = 0.5
+        self.target = None
+        self.devices = []
+        self.energy = 3
+        #GP parameters
+        self.seed_iter = 0
+        self.numBV = 30
+        self.xi = 0.01
+        self.bounds = None
+        self.acq_func = 'EI'
+        self.alt_param = -1
+        self.m = 200
+        self.iter_bound = False
+        self.hyper_file = None
+        self.max_iter = 50
+        self.norm_coef = 0.1 
+        self.multiplier = 1
+
+    def seed_simplex(self):
+        opt_smx = Optimizer()
+        opt_smx.timeout = self.seed_timeout
+        minimizer = Simplex()
+        minimizer.max_iter = self.seed_iter
+        opt_smx.minimizer = minimizer
+        seq = [Action(func=opt_smx.max_target_func, args=[self.target, self.devices])]
+        opt_smx.eval(seq)
+        seed_data = np.append(np.vstack(opt_smx.opt_ctrl.dev_sets), np.transpose(-np.array([opt_smx.opt_ctrl.penalty])), axis=1)
+        self.prior_data = pd.DataFrame(seed_data)
+        self.seed_y_data = opt_smx.opt_ctrl.penalty
+
+    def preprocess(self):
+        hyp_params = HyperParams(pvs=self.devices, filename=self.hyper_file)
+        self.energy = str(round(self.target.get_energy()))
+        dev_ids = [dev.eid for dev in self.devices]  
+        hyps1 = hyp_params.loadHyperParams(self.hyper_file, self.energy, self.target, dev_ids, self.multiplier)
+        dim = len(self.devices)
+        self.model = OGP(dim, hyps1, maxBV=self.numBV, weighted=False)
+        self.scanner = BayesOpt(model=self.model, target_func=self.target, acq_func=self.acq_func, xi=self.xi,
+                           alt_param=self.alt_param, m=self.m, bounds=self.bounds, iter_bound=self.iter_bound,
+                                prior_data=self.prior_data)
+        self.scanner.max_iter = self.max_iter
+
+    def minimize(self,  error_func, x):
+        self.seed_simplex()
+        self.preprocess()
+        self.scanner.minimize(error_func, x)
+        return
+
+
+class MachineStatus:
+    def __init__(self):
+        pass
+
+    def is_ok(self):
+        return True
+
+class OptControl:
+    def __init__(self):
+        self.penalty = []
+        self.dev_sets = []
+        self.devices = []
+        self.nsteps = 0
+        self.pause = False
+        self.kill = False
+        self.is_ok = True
+        self.timeout = 0.1
+        self.alarm_timeout = 0
+
+    def wait(self):
+        while 1:
+            if self.m_status.is_ok():
+                self.is_ok = True
+                time.sleep(self.alarm_timeout)
+                return 1
+            time.sleep(self.timeout)
+            self.is_ok = False
+            print(".",)
+
+    def stop(self):
+        self.kill = True
+
+    def start(self):
+        self.kill = False
+
+    def back_nsteps(self, n):
+        if n <= self.nsteps:
+            n = -1 - n
+        else:
+            print("OptControl: back_nsteps n > nsteps. return last step")
+            n = -1
+        return self.dev_sets[-n]
+
+    def save_step(self, pen, x):
+        self.penalty.append(pen)
+        self.dev_sets.append(x)
+        self.nsteps = len(self.penalty)
+
+    def best_step(self):
+        x = self.dev_sets[np.argmin(self.penalty)]
+        return x
+
+class Optimizer(Thread):
+    def __init__(self,normalize=False):
+        super(Optimizer, self).__init__()
+        self.debug = False
+        self.minimizer = Simplex()
+        self.devices = []
+        self.target = None
+        self.timeout = None
+        self.opt_ctrl = OptControl()
+        self.seq = []
+        self.set_best_solution = True
+        self.normalization = False
+        self.norm_coef = 0.1
+        self.norm_coef_multiplier = 1
+        self.useScale = False
+        self.points = None
+
+    def eval(self, seq=None, logging=False, log_file=None):
+        """
+        Run the sequence of tuning events
+        """
+        if seq != None:
+            self.seq = seq
+        for s in self.seq:
+            s.apply()
+
+    def exceed_limits(self, x):
+        for i in range(len(x)):
+            if self.devices[i].check_limits(x[i]):
+                return True
+        return False
+    
+    def set_values(self, x):
+        for i in range(len(self.devices)):
+            print('setting', self.devices[i].id, '->', x[i])
+            self.devices[i].set_value(x[i])
+
+    def calc_scales(self):
+        """
+        calculate scales for normalized simplex
+        :return: np.array() - device_delta_limits * norm_coef
+        """
+        self.norm_coef = self.norm_coef*self.norm_coef_multiplier
+        self.norm_scales = np.zeros(np.size(self.devices))
+        for i, dev in enumerate(self.devices):
+            lims = dev.get_limits()
+            delta = lims[-1] - lims[0]
+            self.norm_scales[i] = delta*self.norm_coef
+        return self.norm_scales
+
+    def error_func(self, x):
+        if self.normalization:
+            delta_x = x
+            delta_x_scaled = delta_x/0.00025*self.norm_scales
+            x = self.x_init + delta_x_scaled
+
+        if self.opt_ctrl.kill:
+            print('Killed from external process')
+            # NEW CODE - to kill if run from outside thread
+            return 0
+
+        for i in xrange(len(self.devices)):
+            print 'setting', self.devices[i].eid, '->',x[i]
+            self.devices[i].set_value(x[i])
+
+        pen = 0.0
+        print('sleeping ' + str(self.timeout))
+        sleep(self.timeout)
+        print ('done sleeping')
+        pen = self.target.get_penalty()
+        self.opt_ctrl.save_step(pen, x)
+        return pen
+
+    def max_target_func(self, target, devices, params = {}):
+        """
+        Direct target function optimization with simplex/GP, using Devices as a multiknob
+        """
+        [dev.clean() for dev in devices]
+        self.devices = devices
+        self.target = target
+        self.minimizer.devices = devices
+        self.minimizer.target = target
+        self.minimizer.opt_ctrl = self.opt_ctrl
+        self.target.devices = devices
+        dev_ids = [dev.eid for dev in self.devices]
+        sase_ref = self.target.get_penalty()
+        x = [dev.get_value() for dev in self.devices]
+        x_init = x
+
+        if self.normalization:
+            self.x_init = x_init
+            x = np.zeros_like(x)
+            self.calc_scales()
+
+        res = self.minimizer.minimize(self.error_func, x)
+        
+        if self.set_best_solution:
+            x = self.opt_ctrl.best_step()
+            self.set_values(x)
+
+        sase_new = self.target.get_penalty()
+        print ('step ended changing sase from/to', sase_ref, sase_new)
+
+    def run(self):
+        self.opt_ctrl.start()
+        self.eval(self.seq)
+        print("FINISHED")
+        return 0
+
+class Action:
+        def __init__(self, func, args = None, id = None):
+                self.func = func
+                self.args = args
+                self.id = id
+        def apply(self):
+                print 'applying...', self.id
+                self.func(*self.args)

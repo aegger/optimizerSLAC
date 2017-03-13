@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.GP.example_script &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.GP.example_script</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Jan 25 16:19:03 2016</span>
+
+<span class="sd">@author: Mitch</span>
+
+<span class="sd">Script to show optimization results on toy problem.</span>
+
+<span class="sd">Currently more sensitive to initial conditions than expected. Also currently</span>
+<span class="sd">uses hyperparameters that are clearly suboptimal - results are inconsistent</span>
+<span class="sd">based on initial sampling and whether bounds are given for acquisition.</span>
+
+<span class="sd">Probably could find a better toy problem that is nonnegative, which</span>
+<span class="sd">might imporove consistency.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">GPtools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">OnlineGP</span> <span class="kn">import</span> <span class="n">OGP</span>
+<span class="kn">from</span> <span class="nn">SPGPmodel</span> <span class="kn">import</span> <span class="n">SPGP</span>
+<span class="kn">from</span> <span class="nn">BasicInterfaces</span> <span class="kn">import</span> <span class="n">fint</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">rand</span>
+<span class="kn">import</span> <span class="nn">BayesOptimization</span> <span class="kn">as</span> <span class="nn">BOpt</span>
+
+<span class="n">runs</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">num_iter</span> <span class="o">=</span> <span class="mi">60</span>
+<span class="n">num_init</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">numBV</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># use this just to compute hyperparams</span>
+<span class="n">fullGP</span> <span class="o">=</span> <span class="n">SPGP</span><span class="p">()</span>
+<span class="n">rand_sample</span> <span class="o">=</span> <span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span>
+<span class="n">function</span> <span class="o">=</span> <span class="n">fint</span><span class="p">(</span><span class="n">rand_sample</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">fullGP</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rand_sample</span><span class="p">),</span> <span class="n">function</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">rand_sample</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">hyps</span> <span class="o">=</span> <span class="n">fullGP</span><span class="o">.</span><span class="n">hyps</span>
+
+
+<span class="c">## setup for data collection</span>
+<span class="c">#res1 = range(runs)</span>
+<span class="c">#res2 = range(runs)</span>
+<span class="c">#x1 = range(runs)</span>
+<span class="c">#x2 = range(runs)</span>
+<span class="c">#model1 = range(runs)</span>
+<span class="c">#model2 = range(runs)</span>
+<span class="c">#</span>
+<span class="c">#for j in range(runs):</span>
+<span class="c">#    </span>
+<span class="c">#    # generate initial data</span>
+<span class="c">#    init_x = (rand(1,1) - .5) * 4</span>
+<span class="c">#    p_data = np.zeros(shape=(num_init,2))</span>
+<span class="c">#    int1 = fint(init_x)</span>
+<span class="c">#    int2 = fint(init_x)</span>
+<span class="c">#    </span>
+<span class="c">#    p_data[:,[0]] = (rand(num_init,1) - .5)*4</span>
+<span class="c">#    p_data[:,[1]] = int1.f(p_data[:,[0]])    </span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    # initialize optimizers</span>
+<span class="c">#    #bnds = tuple([(-1.9,1.9)])</span>
+<span class="c">#    bnds = None</span>
+<span class="c">#    model1[j] = OGP(1,hyps, maxBV=numBV)</span>
+<span class="c">#    opt1 = BOpt.BayesOpt(model1[j], int1, xi=0.01, acq_func=&#39;EI&#39;, bounds=bnds, prior_data=pd.DataFrame(p_data))</span>
+<span class="c">#    model2[j] = OGP(1,hyps, weighted=True, maxBV=numBV)</span>
+<span class="c">#    opt2 = BOpt.BayesOpt(model2[j], int2, xi=0.01, acq_func=&#39;EI&#39;, bounds=bnds, prior_data=pd.DataFrame(p_data))</span>
+<span class="c">#    </span>
+<span class="c">#    # iterate, do optimization, collect data</span>
+<span class="c">#    res1[j] = []</span>
+<span class="c">#    res2[j] = []</span>
+<span class="c">#    x1[j] = []</span>
+<span class="c">#    x2[j] = []</span>
+<span class="c">#    for i in range(num_iter):</span>
+<span class="c">#        opt1.OptIter()</span>
+<span class="c">#        #opt2.OptIter()</span>
+<span class="c">#        x1[j].append(opt1.acquire())</span>
+<span class="c">#        #x2[j].append(opt2.acquire())</span>
+<span class="c">#        res1[j].append(int1.f(x1[j][-1])[0][0])</span>
+<span class="c">#        #res2[j].append(int1.f(x2[j][-1])[0][0])</span>
+<span class="c">#        </span>
+<span class="c">## performance plot</span>
+<span class="c">##errplot(res1,res2)</span>
+<span class="c">#errplot(res1)</span>
+
+<span class="c"># can plot individual GP models as well:</span>
+<span class="c"># BVplot(model1[0], function.f)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

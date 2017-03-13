@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to OcelotInterface’s documentation &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="#" />
+    <link rel="next" title="Introduction" href="intro.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-ocelotinterface-s-documentation">
+<h1>Welcome to OcelotInterface&#8217;s documentation<a class="headerlink" href="#welcome-to-ocelotinterface-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p><strong>This page documents the structure and various packages used in the OcelotInterface GUI.</strong></p>
+<a class="reference internal image-reference" href="_images/ocelot_scan.png"><img alt="_images/ocelot_scan.png" src="_images/ocelot_scan.png" style="width: 600px;" /></a>
+<p><em>The OcelotInterface GUI after a simplex scan of the first four LTU matching quads</em></p>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#what-is-oceotinterface">What is OceotInterface?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#what-can-it-do">What can it do?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#resources">Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">GUI  Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#launching-the-gui">Launching the GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#gui-scanner-panel">GUI Scanner Panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#gui-options-panel">GUI Options Panel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Project Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#ocelotinterface-main-file">OcelotInterface Main File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#lcls-interface-file">LCLS Interface File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#scanner-threads-file">Scanner Threads File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#reset-panel-module">Reset Panel Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#epicsget-class">epicsGet Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#parameters-and-file-io">Parameters and File IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#calculating-parameters-with-the-archiveretrieve-module">Calculating Parameters with the archiveRetrieve Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structure.html#ocelot-developmeng-and-test-mode">Ocelot Developmeng and Test Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="status.html">Project Status</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="status.html#to-do-list">To Do List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="status.html#wiki-notes">Wiki Notes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="source-documentation">
+<h2>Source Documentation<a class="headerlink" href="#source-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="oceTest.html">oceTest Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="oceTest.html#id1"><tt class="docutils literal"><span class="pre">oceTest</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oceTest.html#ocelotinterface-module"><tt class="docutils literal"><span class="pre">OcelotInterface</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oceTest.html#uiocelotinterface-module"><tt class="docutils literal"><span class="pre">UIOcelotInterface</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oceTest.html#taperthread-module"><tt class="docutils literal"><span class="pre">taperThread</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oceTest.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.GP.html">GP Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#basicinterfaces-module"><tt class="docutils literal"><span class="pre">BasicInterfaces</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#bayesopt-oldcopy-module"><tt class="docutils literal"><span class="pre">BayesOpt_oldcopy</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#bayesoptimization-module"><tt class="docutils literal"><span class="pre">BayesOptimization</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#gp-module"><tt class="docutils literal"><span class="pre">GP</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#gp-utils-module"><tt class="docutils literal"><span class="pre">GP_utils</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#gptools-module"><tt class="docutils literal"><span class="pre">GPtools</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#onlinegp-module"><tt class="docutils literal"><span class="pre">OnlineGP</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#spgpmodel-module"><tt class="docutils literal"><span class="pre">SPGPmodel</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#discrete-test-script-module"><tt class="docutils literal"><span class="pre">discrete_test_script</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#example-script-module"><tt class="docutils literal"><span class="pre">example_script</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#lcls-opt-script-module"><tt class="docutils literal"><span class="pre">lcls_opt_script</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.GP.html#minimize-module"><tt class="docutils literal"><span class="pre">minimize</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.mint.html">mint Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.mint.html#lcls-interface-module"><tt class="docutils literal"><span class="pre">lcls_interface</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.mint.html#mint-module"><tt class="docutils literal"><span class="pre">mint</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.mint.html#opt-objects-module"><tt class="docutils literal"><span class="pre">opt_objects</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.parameters.html">parameters Package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.resetpanel.html">resetpanel Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.resetpanel.html#uiresetpanel-module"><tt class="docutils literal"><span class="pre">UIresetpanel</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.resetpanel.html#resetpanel-module"><tt class="docutils literal"><span class="pre">resetpanel</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.resetpanel.html#resetpanelbox-module"><tt class="docutils literal"><span class="pre">resetpanelbox</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.sint.html">sint Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.sint.html#corrplot-module"><tt class="docutils literal"><span class="pre">corrplot</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.sint.html#corrplot-interface-module"><tt class="docutils literal"><span class="pre">corrplot_interface</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.sint.html#fitcorrplot-module"><tt class="docutils literal"><span class="pre">fitcorrplot</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.sint.html#sim-interface-module"><tt class="docutils literal"><span class="pre">sim_interface</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.sint.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="oceTest.sint.lmfit.html">lmfit Package</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#id1"><tt class="docutils literal"><span class="pre">lmfit</span></tt> Package</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#differentialevolution-module"><tt class="docutils literal"><span class="pre">_differentialevolution</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#version-module"><tt class="docutils literal"><span class="pre">_version</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#asteval-module"><tt class="docutils literal"><span class="pre">asteval</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#astutils-module"><tt class="docutils literal"><span class="pre">astutils</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#confidence-module"><tt class="docutils literal"><span class="pre">confidence</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#lineshapes-module"><tt class="docutils literal"><span class="pre">lineshapes</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#minimizer-module"><tt class="docutils literal"><span class="pre">minimizer</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#model-module"><tt class="docutils literal"><span class="pre">model</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#models-module"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#ordereddict-module"><tt class="docutils literal"><span class="pre">ordereddict</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#parameter-module"><tt class="docutils literal"><span class="pre">parameter</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#printfuncs-module"><tt class="docutils literal"><span class="pre">printfuncs</span></tt> Module</a></li>
+<li class="toctree-l6"><a class="reference internal" href="oceTest.sint.lmfit.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="oceTest.sint.lmfit.ui.html">ui Package</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="oceTest.sint.lmfit.ui.html#id1"><tt class="docutils literal"><span class="pre">ui</span></tt> Package</a></li>
+<li class="toctree-l8"><a class="reference internal" href="oceTest.sint.lmfit.ui.html#basefitter-module"><tt class="docutils literal"><span class="pre">basefitter</span></tt> Module</a></li>
+<li class="toctree-l8"><a class="reference internal" href="oceTest.sint.lmfit.ui.html#ipy-fitter-module"><tt class="docutils literal"><span class="pre">ipy_fitter</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="oceTest.sint.lmfit.uncertainties.html">uncertainties Package</a><ul>
+<li class="toctree-l8"><a class="reference internal" href="oceTest.sint.lmfit.uncertainties.html#id1"><tt class="docutils literal"><span class="pre">uncertainties</span></tt> Package</a></li>
+<li class="toctree-l8"><a class="reference internal" href="oceTest.sint.lmfit.uncertainties.html#umath-module"><tt class="docutils literal"><span class="pre">umath</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="oceTest.test.html">test Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.test.html#bugtest-module"><tt class="docutils literal"><span class="pre">bugtest</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.test.html#setdevstest-module"><tt class="docutils literal"><span class="pre">setDevsTest</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.test.html#testscanners-module"><tt class="docutils literal"><span class="pre">testScanners</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oceTest.test.html#youttest-module"><tt class="docutils literal"><span class="pre">yOutTest</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to OcelotInterface&#8217;s documentation</a><ul>
+<li><a class="reference internal" href="#contents">Contents</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#source-documentation">Source Documentation</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="next chapter">Introduction</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             >next</a> |</li>
+        <li><a href="#">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

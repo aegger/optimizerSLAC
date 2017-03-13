@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>resetpanel Package &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="index.html" />
+    <link rel="up" title="OcelotInterface Package" href="OcelotInterface.html" />
+    <link rel="next" title="test Package" href="OcelotInterface.test.html" />
+    <link rel="prev" title="parameters Package" href="OcelotInterface.parameters.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.test.html" title="test Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.parameters.html" title="parameters Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >&lt;no title&gt;</a> &raquo;</li>
+          <li><a href="OcelotInterface.html" accesskey="U">OcelotInterface Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="resetpanel-package">
+<h1>resetpanel Package<a class="headerlink" href="#resetpanel-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-OcelotInterface.resetpanel.UIresetpanel">
+<span id="uiresetpanel-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">UIresetpanel</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.resetpanel.UIresetpanel" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="OcelotInterface.resetpanel.UIresetpanel.Ui_Form">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.resetpanel.UIresetpanel.</tt><tt class="descname">Ui_Form</tt><a class="reference internal" href="_modules/OcelotInterface/resetpanel/UIresetpanel.html#Ui_Form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.UIresetpanel.Ui_Form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.UIresetpanel.Ui_Form.retranslateUi">
+<tt class="descname">retranslateUi</tt><big>(</big><em>Form</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/UIresetpanel.html#Ui_Form.retranslateUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.UIresetpanel.Ui_Form.retranslateUi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.UIresetpanel.Ui_Form.setupUi">
+<tt class="descname">setupUi</tt><big>(</big><em>Form</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/UIresetpanel.html#Ui_Form.setupUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.UIresetpanel.Ui_Form.setupUi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.resetpanel.resetpanel">
+<span id="resetpanel-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">resetpanel</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.resetpanel.resetpanel" title="Permalink to this headline">¶</a></h2>
+<p>PYQT interface for running OCELOT simplex optimization.</p>
+<p>Created as a QT widget for use in other applications as well.</p>
+<p>Tyler Cope, 2016</p>
+<dl class="class">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.resetpanel.resetpanel.</tt><tt class="descname">ResetpanelWindow</tt><big>(</big><em>parent=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QFrame</span></tt></p>
+<p>Main GUI class for the resetpanel.</p>
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getPvList">
+<tt class="descname">getPvList</tt><big>(</big><em>pvs_in=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.getPvList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getPvList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to build a pv list from file.</p>
+<dl class="docutils">
+<dt>Can get passed string filename to parse text into a pv list, ex.</dt>
+<dd>PV_1
+PV_2
+...
+PV_N</dd>
+</dl>
+<p>Entrys with at &#8216;#&#8217; in the file are ignored
+Alternativly can be passed a list of pv strings for build the pv list
+Saves the PV list as a class varable</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pvs_in: Can be either List of pvs, or string filename</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getStartValues">
+<tt class="descname">getStartValues</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.getStartValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getStartValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes start values for the PV list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.initTable">
+<tt class="descname">initTable</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.initTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.initTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the UI table object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.launchPopupAll">
+<tt class="descname">launchPopupAll</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.launchPopupAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.launchPopupAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launches the ARE YOU SURE popup window for pv reset.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.loadStyleSheet">
+<tt class="descname">loadStyleSheet</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.loadStyleSheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.loadStyleSheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load in the dark theme style sheet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.resetAll">
+<tt class="descname">resetAll</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.resetAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.resetAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all PVs back to their reference values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateCurrentValues">
+<tt class="descname">updateCurrentValues</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.updateCurrentValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateCurrentValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to update the table on every clock cycle.</p>
+<p>Loops through the pv list and gets new data, then updates the Current Value column.
+Hard coded to turn Current Value column red at 0.1% differenct from Ref Value.
+It would be better to update the table on a callback, but PyEpics crashes with cb funcitons.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateReference">
+<tt class="descname">updateReference</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#ResetpanelWindow.updateReference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateReference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates reference values for all PVs on button click.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.resetpanel.resetpanel.main">
+<tt class="descclassname">OcelotInterface.resetpanel.resetpanel.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanel.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanel.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main functino to open a resetpanel GUI.</p>
+<p>If passed a file name, will try and load PV list from that file.
+Otherwise defaults to a file in the base directory with pre-loaded common tuned PVs.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.resetpanel.resetpanelbox">
+<span id="resetpanelbox-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">resetpanelbox</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.resetpanel.resetpanelbox" title="Permalink to this headline">¶</a></h2>
+<p>Subclass of ResetpanelWindow, used to make a version with check box selction</p>
+<p>Tyler Cope, 2016</p>
+<dl class="class">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.resetpanel.resetpanelbox.</tt><tt class="descname">ResetpanelBoxWindow</tt><big>(</big><em>parent=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow" title="OcelotInterface.resetpanel.resetpanel.ResetpanelWindow"><tt class="xref py py-class docutils literal"><span class="pre">OcelotInterface.resetpanel.resetpanel.ResetpanelWindow</span></tt></a></p>
+<p>The main GUI class to add in checkboxes, subclassed from the ResetPanelWindow class.</p>
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addCheckBoxes">
+<tt class="descname">addCheckBoxes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.addCheckBoxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addCheckBoxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creats additional column in UI table for check box.</p>
+<p>Must be called again if the user adds another PV with middle click function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addPv">
+<tt class="descname">addPv</tt><big>(</big><em>pv</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.addPv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addPv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add another PV to the GUI on middle click.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pv (str): String name of the PV to add</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addTable">
+<tt class="descname">addTable</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a set of devices based on dropdown selection</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>index (int): index of selection from deviceList QComboBox</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.clearTable">
+<tt class="descname">clearTable</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.clearTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvList">
+<tt class="descname">getPvList</tt><big>(</big><em>pvs_in=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.getPvList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redefine method to add in checkboxes when getting the PV list.</p>
+<p>Copied from resetpanel.py</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvsFromCbState">
+<tt class="descname">getPvsFromCbState</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.getPvsFromCbState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvsFromCbState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets list of all pvs that have checked boxes.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>List of PV strings</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getRows">
+<tt class="descname">getRows</tt><big>(</big><em>state</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.getRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getRows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the UI checkbox state from slected rows.</p>
+<p>Loops though the rows and gets the selected state from the &#8216;Active&#8221; column.
+If highlighted, check box is set the the &#8216;state&#8217; input arg.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>state (bool): Bool of whether the boxes should be checked or unchecked.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.launchPopupAll">
+<tt class="descname">launchPopupAll</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.launchPopupAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.launchPopupAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launches the ARE YOU SURE popup for pv reset value function.</p>
+<p>Rewrote to change the warning string to say &#8220;checkbox selected&#8221; instead of &#8220;all&#8221; to avoid confusion with number of devices being reset.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.mouseReleaseEvent">
+<tt class="descname">mouseReleaseEvent</tt><big>(</big><em>evt</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.mouseReleaseEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.mouseReleaseEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get PV coppied from the system clipboard on button release</p>
+<p>Button 4 is the middle click button.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.resetAll">
+<tt class="descname">resetAll</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.resetAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.resetAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all PVs with a box checked.</p>
+<p>Rewrote this function to only change selected rows, not all rows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.uncheckBoxes">
+<tt class="descname">uncheckBoxes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.uncheckBoxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.uncheckBoxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to uncheck all active boxes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.updateReference">
+<tt class="descname">updateReference</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#ResetpanelBoxWindow.updateReference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.updateReference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update reference values for selected rows.</p>
+<p>Rewrote this function to only update slected rows, not all.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.customTW">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.resetpanel.resetpanelbox.</tt><tt class="descname">customTW</tt><big>(</big><em>parent</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#customTW"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.customTW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QTableWidget</span></tt></p>
+<p>Subclass the tablewidget to add a custom PV on middle click.</p>
+<dl class="method">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.customTW.mouseReleaseEvent">
+<tt class="descname">mouseReleaseEvent</tt><big>(</big><em>evt</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#customTW.mouseReleaseEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.customTW.mouseReleaseEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Grabs string from the clipboard if middle button click.</p>
+<p>Tries to then add the PV to the parent GUI pv lists.
+Calls parent.addPv() method.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>evt (QEvent): Event object passed in from QT</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.resetpanel.resetpanelbox.main">
+<tt class="descclassname">OcelotInterface.resetpanel.resetpanelbox.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/resetpanel/resetpanelbox.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.resetpanel.resetpanelbox.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start up the main program if launch from comamnd line.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">resetpanel Package</a><ul>
+<li><a class="reference internal" href="#module-OcelotInterface.resetpanel.UIresetpanel"><tt class="docutils literal"><span class="pre">UIresetpanel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.resetpanel.resetpanel"><tt class="docutils literal"><span class="pre">resetpanel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.resetpanel.resetpanelbox"><tt class="docutils literal"><span class="pre">resetpanelbox</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="OcelotInterface.parameters.html"
+                        title="previous chapter">parameters Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="OcelotInterface.test.html"
+                        title="next chapter">test Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/OcelotInterface.resetpanel.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.test.html" title="test Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.parameters.html" title="parameters Package"
+             >previous</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >&lt;no title&gt;</a> &raquo;</li>
+          <li><a href="OcelotInterface.html" >OcelotInterface Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

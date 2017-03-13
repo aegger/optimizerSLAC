@@ -1,0 +1,314 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.resetpanel.resetpanel &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.resetpanel.resetpanel</h1><div class="highlight"><pre>
+<span class="c">#!/usr/local/lcls/package/python/current/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">PYQT interface for running OCELOT simplex optimization.</span>
+
+<span class="sd">Created as a QT widget for use in other applications as well.</span>
+
+<span class="sd">Tyler Cope, 2016</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFrame</span><span class="p">,</span> <span class="n">QTableWidget</span><span class="p">,</span> <span class="n">QPushButton</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QTimer</span>
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">uic</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">UIresetpanel</span> <span class="kn">import</span> <span class="n">Ui_Form</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;..&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">epicsGet</span> <span class="kn">import</span> <span class="n">epicsGet</span>
+
+<span class="c">#from OcelotInterface.epicsGet import epicsGet</span>
+
+<div class="viewcode-block" id="ResetpanelWindow"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow">[docs]</a><span class="k">class</span> <span class="nc">ResetpanelWindow</span><span class="p">(</span><span class="n">QFrame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Main GUI class for the resetpanel. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+		<span class="c"># initialize</span>
+		<span class="n">QFrame</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">Ui_Form</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+                <span class="c">#epicsGet wrapper</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="p">()</span>
+
+                <span class="c">#blank data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pv_objects</span>  <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="c">#button connections</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">updateReference</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateReference</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">resetAll</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">launchPopupAll</span><span class="p">)</span>
+                
+                <span class="c">#fast timer start</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">trackTimer</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QTimer</span><span class="p">()</span>
+    		<span class="bp">self</span><span class="o">.</span><span class="n">trackTimer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateCurrentValues</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trackTimer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="c">#refresh every 100 ms</span>
+
+                <span class="c">#dark theme</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loadStyleSheet</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResetpanelWindow.loadStyleSheet"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.loadStyleSheet">[docs]</a>	<span class="k">def</span> <span class="nf">loadStyleSheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Load in the dark theme style sheet. &quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cssfile</span> <span class="o">=</span> <span class="s">&quot;style.css&quot;</span>
+			<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cssfile</span><span class="p">,</span><span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+		<span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+			<span class="k">print</span> <span class="s">&#39;No style sheet found!&#39;</span>	
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.getPvList"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getPvList">[docs]</a>        <span class="k">def</span> <span class="nf">getPvList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs_in</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to build a pv list from file.</span>
+
+<span class="sd">                Can get passed string filename to parse text into a pv list, ex.</span>
+<span class="sd">                        PV_1</span>
+<span class="sd">                        PV_2</span>
+<span class="sd">                        ...</span>
+<span class="sd">                        PV_N</span>
+
+<span class="sd">                Entrys with at &#39;#&#39; in the file are ignored</span>
+<span class="sd">                Alternativly can be passed a list of pv strings for build the pv list</span>
+<span class="sd">                Saves the PV list as a class varable </span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs_in: Can be either List of pvs, or string filename</span>
+
+<span class="sd">                &quot;&quot;&quot;</span>
+		        
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">pvs_in</span><span class="p">:</span>
+                        <span class="k">return</span>
+        
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pvs_in</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">pvs_in</span><span class="p">):</span>
+                                <span class="n">l</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;#&#39;</span><span class="p">:</span> <span class="c">#exclude commented PVs</span>
+                                        <span class="k">continue</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs_in</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">getStartValues</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initTable</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.getStartValues"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.getStartValues">[docs]</a>        <span class="k">def</span> <span class="nf">getStartValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Initializes start values for the PV list. &quot;&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="c">#self.pv_objects[pv] = epics.PV(pv)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                        <span class="c">#self.pv_objects[pv].add_callback(callback=self.PvGetCallBack)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.updateReference"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateReference">[docs]</a>        <span class="k">def</span> <span class="nf">updateReference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Updates reference values for all PVs on button click.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">updateReference</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Getting vals...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getStartValues</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">])))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">updateReference</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Update Reference&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.initTable"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.initTable">[docs]</a>	<span class="k">def</span> <span class="nf">initTable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Initialize the UI table object &quot;&quot;&quot;</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;PVs&quot;</span><span class="p">,</span><span class="s">&quot;Reference Value&quot;</span><span class="p">,</span><span class="s">&quot;Current Value&quot;</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setEditTriggers</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">NoEditTriggers</span><span class="p">)</span> <span class="c">#No user edits on talbe</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span><span class="o">.</span><span class="n">setResizeMode</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                        <span class="c">#put PV in the table</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pv</span><span class="p">)))</span>
+                        <span class="c">#put start val in</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">])))</span>
+                        <span class="c">#self.pv_objects[pv].run_callbacks()#initialize in the pvs current value</span>
+
+        <span class="c">#update the table on PV change callback</span>
+        <span class="c">#</span>
+        <span class="c"># REMOVED BECAUSE CALLBACK CAUSED SEG FAUTLS.</span>
+        <span class="c">#</span>
+        <span class="c">#def PvGetCallBack(self,**kw):</span>
+
+        <span class="c">#        #get pv info from the callback kw arg</span>
+        <span class="c">#        val=kw[&#39;value&#39;]</span>
+        <span class="c">#        pv=kw[&#39;pvname&#39;]</span>
+        <span class="c">#        </span>
+        <span class="c">#        #set current string to red at 0.5 percent difference from initial value</span>
+        <span class="c">#        percent = 0.005 </span>
+
+        <span class="c">#        </span>
+        <span class="c">#        #find the difference from PV start to current, decide to change table color</span>
+        <span class="c">#        try:</span>
+        <span class="c">#                #get row for callback PV in the gui table, set string to pv value</span>
+        <span class="c">#                row = self.pvs.index(str(pv))</span>
+        <span class="c">#                self.ui.tableWidget.setItem(row,2,QtGui.QTableWidgetItem(str(val)))</span>
+
+        <span class="c">#                tol  = abs(self.startValues[pv]*percent)</span>
+        <span class="c">#                diff = abs(abs(self.startValues[pv]) - abs(val))</span>
+        <span class="c">#                if diff &gt; tol:</span>
+        <span class="c">#                        self.ui.tableWidget.item(row,2).setForeground(QtGui.QColor(255,0,0))</span>
+        <span class="c">#                else:</span>
+        <span class="c">#                        self.ui.tableWidget.item(row,2).setForeground(QtGui.QColor(255,255,255))</span>
+        <span class="c">#                QApplication.processEvents()</span>
+        <span class="c">#        except:</span>
+        <span class="c">#                pass</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.updateCurrentValues"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.updateCurrentValues">[docs]</a>        <span class="k">def</span> <span class="nf">updateCurrentValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to update the table on every clock cycle.</span>
+
+<span class="sd">                Loops through the pv list and gets new data, then updates the Current Value column.</span>
+<span class="sd">                Hard coded to turn Current Value column red at 0.1% differenct from Ref Value.</span>
+<span class="sd">                It would be better to update the table on a callback, but PyEpics crashes with cb funcitons.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+        
+                <span class="n">percent</span> <span class="o">=</span> <span class="mf">0.001</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">currentValues</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">currentValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentValues</span><span class="p">[</span><span class="n">pv</span><span class="p">])))</span>
+
+                        <span class="n">tol</span>  <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span><span class="o">*</span><span class="n">percent</span><span class="p">)</span>
+                        <span class="n">diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">])</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]))</span>
+                        <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">101</span><span class="p">))</span><span class="c">#red</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">setForeground</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">))</span><span class="c">#white</span>
+                <span class="n">QApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.resetAll"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.resetAll">[docs]</a>        <span class="k">def</span> <span class="nf">resetAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Set all PVs back to their reference values.&quot;&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelWindow.launchPopupAll"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.ResetpanelWindow.launchPopupAll">[docs]</a>        <span class="k">def</span> <span class="nf">launchPopupAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Launches the ARE YOU SURE popup window for pv reset.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span> <span class="o">=</span> <span class="n">uic</span><span class="o">.</span><span class="n">loadUi</span><span class="p">(</span><span class="s">&quot;UIareyousure.ui&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">exit</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">reset</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resetAll</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">reset</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanel.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Main functino to open a resetpanel GUI.</span>
+
+<span class="sd">        If passed a file name, will try and load PV list from that file.</span>
+<span class="sd">        Otherwise defaults to a file in the base directory with pre-loaded common tuned PVs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c">#try to get a pv list file name from commandline arg</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="s">&quot;./lclsparams&quot;</span>
+
+        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">ResetpanelWindow</span><span class="p">()</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QIcon</span><span class="p">(</span><span class="s">&#39;/usr/local/lcls/tools/python/toolbox/py_logo.png&#39;</span><span class="p">))</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">getPvList</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

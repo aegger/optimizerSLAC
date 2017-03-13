@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.taperThread &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.taperThread</h1><div class="highlight"><pre>
+<span class="c">#thread spawned by OcelotInterface.py when a scan is launched with a taper parameter selected</span>
+<span class="c">#polls taper PVs for change, updates undulator line to reflect new parameters, blocks main optimization loop while segments are moving.</span>
+
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+<span class="kn">import</span> <span class="nn">epicsGet</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QTimer</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span> <span class="k">as</span> <span class="n">op</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="c">#watches taper PVs and sends setTaper commands when they change</span>
+<div class="viewcode-block" id="taperWatcher"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.taperWatcher">[docs]</a><span class="k">class</span> <span class="nc">taperWatcher</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>   
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>  
+
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">updateTime</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span> <span class="c">#time between calls to checkTaperPVs</span>
+                <span class="p">):</span>
+
+                <span class="nb">super</span><span class="p">(</span><span class="n">taperWatcher</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>	
+                <span class="bp">self</span><span class="o">.</span><span class="n">updateTime</span> <span class="o">=</span> <span class="n">updateTime</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">readyPV</span> <span class="o">=</span> <span class="s">&#39;SIOC:SYS0:ML00:CALCOUT805&#39;</span>      <span class="c">#pv = 0 when segments are moving, 1 when they are not moving</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getter</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="o">.</span><span class="n">epicsGet</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">False</span>
+                
+<div class="viewcode-block" id="taperWatcher.run"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.taperWatcher.run">[docs]</a>        <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+                <span class="c">#main </span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taper</span> <span class="o">=</span> <span class="n">Taper</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taperPVs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">getPVs</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">setTaper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>       <span class="c">#sets undulator line to initial fit of starting taper</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">oldTaper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">p</span>            <span class="c">#saves old/initial taper parameters</span>
+                <span class="k">print</span> <span class="s">&#39;Starting taper thread&#39;</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kill</span><span class="p">:</span>            
+                        <span class="bp">self</span><span class="o">.</span><span class="n">checkTaperPVs</span><span class="p">()</span>
+                        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateTime</span><span class="p">)</span>
+
+        <span class="c">#poll taperPVs and send setTaper command when they change </span></div>
+<div class="viewcode-block" id="taperWatcher.checkTaperPVs"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.taperWatcher.checkTaperPVs">[docs]</a>        <span class="k">def</span> <span class="nf">checkTaperPVs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">newTaper</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">undsOut</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">tries</span> <span class="o">=</span> <span class="mi">5</span>                                       <span class="c">#number of times to try to set segments that do not move into place after trim</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperPVs</span><span class="p">:</span>                        <span class="c">#loops through pvs and make list of current parameters</span>
+                        <span class="n">newTaper</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">))</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">newTaper</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldTaper</span><span class="p">):</span>              <span class="c">#if parameters/pvs have changed since last time polled</span>
+                <span class="c">#        print newTaper, &#39;!=&#39;, self.oldTaper</span>
+                        <span class="k">while</span><span class="p">(</span><span class="n">tries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                                <span class="n">undsOut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">setTaper</span><span class="p">(</span><span class="n">newTaper</span><span class="p">,</span> <span class="n">undsOut</span><span class="p">)</span>
+                                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">undsOut</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                                        <span class="k">print</span> <span class="s">&quot;some segments still out, trying again; &quot;</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="s">&quot; tries left&quot;</span>
+                                        <span class="n">tries</span> <span class="o">=</span> <span class="n">tries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+                                <span class="k">else</span><span class="p">:</span> <span class="k">break</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">oldTaper</span> <span class="o">=</span> <span class="n">newTaper</span>
+                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readyPV</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  
+               
+<span class="c">#initialize pvs used by program; set taper pvs to current taper parameters if initPV True</span></div></div>
+<div class="viewcode-block" id="Taper"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper">[docs]</a><span class="k">class</span> <span class="nc">Taper</span><span class="p">():</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">initPVs</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getter</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="o">.</span><span class="n">epicsGet</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actpv</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">despv</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initialK</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">movePVs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numK</span> <span class="o">=</span> <span class="mi">32</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsOut</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">defaultStartParam</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.0003</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0001</span><span class="p">]</span> <span class="c">#used by curve fit in getTaperCoefficients</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;PHYS:ACR0:OCLT:LINAMP&#39;</span><span class="p">,</span> <span class="s">&#39;PHYS:ACR0:OCLT:POSTSATSTART&#39;</span><span class="p">,</span> <span class="s">&#39;PHYS:ACR0:OCLT:POSTSATAMP&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outOfTolPV</span> <span class="o">=</span> <span class="s">&#39;SIOC:SYS0:ML00:CALCOUT806&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">True</span>   <span class="c">#set to true if you don&#39;t want und segments to actually move      </span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numK</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span><span class="p">):</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">actpv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:KACT&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:KDES&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:TRIM.PROC&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">movePVs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:TM1MOTOR.DMOV&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">movePVs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:TM2MOTOR.DMOV&#39;</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">firstK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTaperCoefficients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">)</span> <span class="c"># [linamp postsatstart postsatampl]</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">initPVs</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">):</span>
+                                <span class="k">if</span> <span class="n">pv</span> <span class="o">==</span> <span class="s">&#39;PHYS:ACR0:OCLT:POSTSATSTART&#39;</span><span class="p">:</span>
+                                        <span class="n">param</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+                                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Taper.get_value"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.get_value">[docs]</a>        <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span>
+
+        
+        <span class="c">#fit line to parameters p and set undulator line; block while segments are moving; if moveUnds is not empty, move all segments not in undsNotUsedIndex; otherwise, move only moveUnds</span></div>
+<div class="viewcode-block" id="Taper.setTaper"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.setTaper">[docs]</a>        <span class="k">def</span> <span class="nf">setTaper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">moveUnds</span> <span class="o">=</span> <span class="p">[]):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numK</span><span class="p">))</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span><span class="p">)</span>
+                <span class="n">newTaper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">withinTol</span><span class="p">(</span><span class="n">newTaper</span><span class="p">)):</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outOfTolPV</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="k">return</span>
+                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outOfTolPV</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39;Setting Taper: &#39;</span><span class="p">,</span> <span class="n">newTaper</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">moveUnds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">):</span> <span class="n">move</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newTaper</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="n">move</span> <span class="o">=</span> <span class="n">moveUnds</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">move</span><span class="p">:</span>
+                        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
+                                <span class="k">print</span> <span class="s">&#39;caput &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&#39; &#39;</span> <span class="p">,</span> <span class="n">newTaper</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                                <span class="k">print</span> <span class="s">&#39;caput &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="mi">1</span>
+                                <span class="k">continue</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">newTaper</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">while</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stillMoving</span><span class="p">()):</span> 
+                        <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">kill</span><span class="p">):</span> <span class="k">break</span>
+                <span class="c">#check if any valid segments didn&#39;t move into place</span>
+                <span class="n">stillOut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsOut</span><span class="p">()</span>
+                <span class="n">fundsOut</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newTaper</span><span class="p">)):</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">stillOut</span> <span class="ow">and</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span><span class="p">):</span>
+                                <span class="n">stillOut</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">stillOut</span>
+                        
+</div>
+<div class="viewcode-block" id="Taper.taper"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.taper">[docs]</a>        <span class="k">def</span> <span class="nf">taper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span> <span class="n">linAmp</span><span class="p">,</span> <span class="n">postSatStart</span><span class="p">,</span> <span class="n">postSatAmp</span><span class="p">):</span>    <span class="c">#calc individual k values from given set of parameters</span>
+                <span class="k">def</span> <span class="nf">heaviside</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="c">#print self.firstK + linAmp*x + heaviside(x -postSatStart)*postSatAmp*(x - postSatStart)**2</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstK</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">linAmp</span><span class="p">)</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">heaviside</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span><span class="n">postSatStart</span><span class="p">)</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">postSatAmp</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">postSatStart</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="c">#get taper parameters by fitting k values passed to it.</span></div>
+<div class="viewcode-block" id="Taper.getTaperCoefficients"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.getTaperCoefficients">[docs]</a>        <span class="k">def</span> <span class="nf">getTaperCoefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                <span class="n">firstK</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstK</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numK</span><span class="p">))</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaultStartParam</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Taper.getPVs"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.getPVs">[docs]</a>        <span class="k">def</span> <span class="nf">getPVs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">;</span>
+        <span class="c">#check if undulator segments are moving</span></div>
+<div class="viewcode-block" id="Taper.stillMoving"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.stillMoving">[docs]</a>        <span class="k">def</span> <span class="nf">stillMoving</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">movePVs</span><span class="p">:</span>
+                        <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)):</span>
+                                <span class="k">print</span> <span class="n">pv</span><span class="p">,</span> <span class="s">&#39; moving&#39;</span>
+                                <span class="k">return</span> <span class="bp">True</span><span class="p">;</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c">#check if undulators that should be in (i.e. not in undsNotUsedIndex) are out, returns those segments</span></div>
+<div class="viewcode-block" id="Taper.undsOut"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.undsOut">[docs]</a>        <span class="k">def</span> <span class="nf">undsOut</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">outPVs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numK</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">undsNotUsedIndex</span><span class="p">):</span>
+                                <span class="n">statPV</span> <span class="o">=</span> <span class="s">&#39;USEG:UND1:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;50:LOCATIONSTAT&#39;</span>
+                                <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">statPV</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)):</span>
+                                        <span class="n">outPVs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+                <span class="k">return</span> <span class="n">outPVs</span>
+        
+        <span class="c">#check if k values are within tolerance of undulator</span></div>
+<div class="viewcode-block" id="Taper.withinTol"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.withinTol">[docs]</a>        <span class="k">def</span> <span class="nf">withinTol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newTaper</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">pv</span><span class="p">,</span> <span class="n">newK</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">,</span> <span class="n">newTaper</span><span class="p">):</span>
+                        <span class="n">hilim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span> <span class="o">+</span> <span class="s">&#39;.HOPR&#39;</span><span class="p">)</span>
+                        <span class="n">lolim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span> <span class="o">+</span> <span class="s">&#39;.LOPR&#39;</span><span class="p">)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">newK</span> <span class="o">&gt;</span> <span class="n">hilim</span> <span class="ow">or</span> <span class="n">newK</span> <span class="o">&lt;</span> <span class="n">lolim</span><span class="p">):</span>
+                                <span class="k">return</span> <span class="bp">False</span>
+
+                <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="c">#reset und segments to initial taper from when Taper object was initialized</span></div>
+<div class="viewcode-block" id="Taper.resetTaper"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.resetTaper">[docs]</a>        <span class="k">def</span> <span class="nf">resetTaper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Resetting Taper&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">)):</span>
+                        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
+                                <span class="k">print</span> <span class="s">&#39;caput &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&#39; &#39;</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                                <span class="k">print</span> <span class="s">&#39;caput &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="mi">1</span>
+                                <span class="k">continue</span>
+
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">despv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trimpv</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTaperCoefficients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialK</span><span class="p">)</span> <span class="c"># [linamp postsatstart postsatampl]</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">):</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+ 
+        <span class="c">#hardcoded means/std used by norm functions for strength scaling</span></div>
+<div class="viewcode-block" id="Taper.taperParams"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.taperParams">[docs]</a>        <span class="k">def</span> <span class="nf">taperParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">taperParams</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">taperParams</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.000340994106915</span><span class="p">,</span><span class="mf">0.000010269781282</span><span class="p">]</span> <span class="c">#linamp</span>
+                <span class="n">taperParams</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">10.954197518715358</span><span class="p">,</span><span class="o">.</span><span class="mi">40929950080439</span><span class="p">]</span>   <span class="c">#postsatstart</span>
+                <span class="n">taperParams</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.000094961380596</span><span class="p">,</span><span class="mf">0.000003714580572</span><span class="p">]</span>  <span class="c">#postsatampl</span>
+                <span class="k">return</span> <span class="n">taperParams</span>
+
+        <span class="c">#check if pv passed is a taperpv</span></div>
+<div class="viewcode-block" id="Taper.isTaperPV"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.taperThread.Taper.isTaperPV">[docs]</a>        <span class="k">def</span> <span class="nf">isTaperPV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pv</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span>
+              </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.GP.GP &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.GP.GP</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Nov 18 19:46:52 2015</span>
+
+<span class="sd">@author: Mitch</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">alg</span>
+<span class="kn">from</span> <span class="nn">minimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">GP_utils</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="SPGP_train"><a class="viewcode-back" href="../../../OcelotInterface.GP.html#OcelotInterface.GP.GP.SPGP_train">[docs]</a><span class="k">def</span> <span class="nf">SPGP_train</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">num_pseudo_inputs</span><span class="p">,</span><span class="n">num_starts</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trains a sparse Gaussian process on the input data.</span>
+<span class="sd">    X -- DataFrame with training data (n x dim)  </span>
+<span class="sd">    Y -- Labels for training data (n x 1)</span>
+<span class="sd">    num_pseudo_inputs -- number of points used to fill sparse model</span>
+<span class="sd">    num_starts -- number of attempts at minimization. Increases runtime linearly.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    xb -- pseudo-inputs as ndarray (m x dim)</span>
+<span class="sd">    hyperparams -- tuple containing GP parameters</span>
+<span class="sd">    </span>
+<span class="sd">    Translated to python from Edward Snelson&#39;s matlab code by Mitchell McIntire.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">dim</span><span class="p">)</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">num_pseudo_inputs</span><span class="p">,</span><span class="n">n</span><span class="p">])</span>
+    
+    <span class="c"># center data</span>
+    <span class="n">mu_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">-</span> <span class="n">mu_y</span>
+    
+    <span class="n">min_lik</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_starts</span><span class="p">):</span>    
+        <span class="c"># randomly choose initial points</span>
+	<span class="c">#   should randomly sample, but hacking this in for the ACR since</span>
+	<span class="c">#   the pandas version is older</span>
+	<span class="c">#xb_init = np.array(X.sample(m))</span>
+	<span class="n">xb_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">m</span><span class="p">,:])</span>
+    
+        <span class="c"># initialize hyperparameters</span>
+        <span class="n">hyp_ARD</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">X</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)])</span>
+        <span class="n">hyp_coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">var</span><span class="p">()</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">)]])</span>
+        <span class="n">hyp_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">var</span><span class="p">()</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">+</span> <span class="mf">0.01</span><span class="p">)]])</span>
+        <span class="n">hyperparams</span> <span class="o">=</span> <span class="n">pack_hyps</span><span class="p">(</span><span class="n">xb_init</span><span class="p">,</span> <span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">,</span> <span class="n">hyp_noise</span><span class="p">)</span>
+        
+        <span class="c"># minimize neg. log likelihood</span>
+        <span class="c"># min_result = minimize(SPGP_likelihood, hyperparams, args=(y0,np.array(X),m), method=&#39;BFGS&#39;, jac=True)</span>
+        <span class="c">#iter_res = np.reshape(min_result.x, (1,(m+1)*dim + 2))</span>
+        <span class="c">#lik = SPGP_likelihood(iter_res,y0,np.array(X),m,compute_deriv=False)</span>
+        <span class="c">#st = time.time()</span>
+        <span class="p">(</span><span class="n">iter_res</span><span class="p">,</span> <span class="n">lik</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">hyperparams</span><span class="p">,</span> <span class="n">SPGP_likelihood</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">),</span><span class="n">m</span><span class="p">),</span> <span class="n">maxnumfuneval</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="c">#print(time.time() - st)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">lik</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_lik</span><span class="p">):</span>
+            <span class="n">min_lik</span> <span class="o">=</span> <span class="n">lik</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">opt_res</span> <span class="o">=</span> <span class="n">iter_res</span>
+    
+    <span class="c"># extract minimizing hyperparameters</span>
+    <span class="p">(</span><span class="n">xb</span><span class="p">,</span> <span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">,</span> <span class="n">hyp_noise</span><span class="p">)</span> <span class="o">=</span> <span class="n">unpack_hyps</span><span class="p">(</span><span class="n">opt_res</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+    
+    <span class="n">hyperparams</span> <span class="o">=</span> <span class="p">(</span><span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">,</span> <span class="n">hyp_noise</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">xb</span><span class="p">,</span> <span class="n">hyperparams</span> <span class="c">#, mu_y</span>
+    
+    </div>
+<div class="viewcode-block" id="SPGP_predict"><a class="viewcode-back" href="../../../OcelotInterface.GP.html#OcelotInterface.GP.GP.SPGP_predict">[docs]</a><span class="k">def</span> <span class="nf">SPGP_predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">xt</span><span class="p">,</span> <span class="n">hyperparams</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">xt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span>
+    <span class="n">xb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">xb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="p">(</span><span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">,</span> <span class="n">hyp_noise</span><span class="p">)</span> <span class="o">=</span> <span class="n">hyperparams</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">hyp_noise</span><span class="p">)</span>
+    <span class="n">coeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">hyp_coeff</span><span class="p">)</span>
+    
+    <span class="n">K</span> <span class="o">=</span> <span class="n">RBF_kernel</span><span class="p">(</span><span class="n">xb</span><span class="p">,</span> <span class="n">xb</span><span class="p">,</span> <span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">,</span> <span class="n">is_self</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">RBF_kernel</span><span class="p">(</span><span class="n">xb</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+    
+    <span class="n">ep</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">coeff</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">V</span> <span class="o">*</span> <span class="n">V</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="p">))</span> <span class="o">/</span> <span class="n">sigma</span>
+    <span class="n">ep_sqrt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="o">/</span> <span class="n">ep_sqrt</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">/</span> <span class="n">ep_sqrt</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    
+    <span class="n">Lm</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">V</span><span class="o">.</span><span class="n">transpose</span><span class="p">()))</span>
+    <span class="n">bet</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Lm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+    
+    <span class="n">K</span> <span class="o">=</span> <span class="n">RBF_kernel</span><span class="p">(</span><span class="n">xb</span><span class="p">,</span> <span class="n">xt</span><span class="p">,</span> <span class="n">hyp_ARD</span><span class="p">,</span> <span class="n">hyp_coeff</span><span class="p">)</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+    <span class="n">lmst</span> <span class="o">=</span> <span class="n">alg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Lm</span><span class="p">,</span> <span class="n">lst</span><span class="p">)</span>
+    
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">bet</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">lmst</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">lst_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">lst</span> <span class="o">*</span> <span class="n">lst</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">lmst_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">lmst</span> <span class="o">*</span> <span class="n">lmst</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">-</span> <span class="n">lst_cols</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">lmst_cols</span>
+    
+    <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">s2</span>
+    
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

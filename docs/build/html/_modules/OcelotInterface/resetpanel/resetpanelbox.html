@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.resetpanel.resetpanelbox &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.resetpanel.resetpanelbox</h1><div class="highlight"><pre>
+<span class="c">#!/usr/local/lcls/package/python/current/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Subclass of ResetpanelWindow, used to make a version with check box selction</span>
+
+<span class="sd">Tyler Cope, 2016</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">resetpanel</span> <span class="kn">import</span> <span class="n">ResetpanelWindow</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFrame</span><span class="p">,</span> <span class="n">QPushButton</span><span class="p">,</span> <span class="n">QClipboard</span><span class="p">,</span> <span class="n">QTableWidget</span>
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">uic</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="customTW"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.customTW">[docs]</a><span class="k">class</span> <span class="nc">customTW</span><span class="p">(</span><span class="n">QTableWidget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subclass the tablewidget to add a custom PV on middle click.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Init for the table widget, nothing special here&quot;&quot;&quot;</span>
+                <span class="n">QTableWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+
+<div class="viewcode-block" id="customTW.mouseReleaseEvent"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.customTW.mouseReleaseEvent">[docs]</a>	<span class="k">def</span> <span class="nf">mouseReleaseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Grabs string from the clipboard if middle button click.</span>
+
+<span class="sd">                Tries to then add the PV to the parent GUI pv lists.</span>
+<span class="sd">                Calls parent.addPv() method.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        evt (QEvent): Event object passed in from QT</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+		<span class="n">button</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">button</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">button</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">enableMiddleClick</span><span class="p">):</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">clipboard</span><span class="p">()</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">QClipboard</span><span class="o">.</span><span class="n">Selection</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">addPv</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="n">QTableWidget</span><span class="o">.</span><span class="n">mouseReleaseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">evt</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ResetpanelBoxWindow"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow">[docs]</a><span class="k">class</span> <span class="nc">ResetpanelBoxWindow</span><span class="p">(</span><span class="n">ResetpanelWindow</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The main GUI class to add in checkboxes, subclassed from the ResetPanelWindow class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Init method, adds in some new UI changes.</span>
+
+<span class="sd">                Adds two buttons, to check and uncheck selected rows.</span>
+<span class="sd">                Add in subclassed table to enable middle click PV add.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+		<span class="c">#initialize</span>
+	        <span class="n">ResetpanelWindow</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">check</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&#39;Check&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">uncheck</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">uncheck</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&#39;Uncheck&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uncheck</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRows</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">uncheck</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRows</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+                <span class="c">#make button text bigger</span>
+                <span class="c">#self.check.setStyleSheet(&#39;font-size: 18pt; font-family: Courier;&#39;)</span>
+
+                <span class="c">#enable middle click method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">enableMiddleClick</span> <span class="o">=</span> <span class="bp">True</span>
+
+                <span class="c">#make the custom table for middle click</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setParent</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="c">#remove old table</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span> <span class="o">=</span> <span class="n">customTW</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c"># make new widget</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+                <span class="c">#self.ui.tableWidget.itemClicked.connect(self.con)</span>
+
+<div class="viewcode-block" id="ResetpanelBoxWindow.mouseReleaseEvent"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.mouseReleaseEvent">[docs]</a>	<span class="k">def</span> <span class="nf">mouseReleaseEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	        Get PV coppied from the system clipboard on button release</span>
+<span class="sd">                </span>
+<span class="sd">                Button 4 is the middle click button.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+		<span class="n">button</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">button</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">button</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enableMiddleClick</span><span class="p">):</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">clipboard</span><span class="p">()</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">QClipboard</span><span class="o">.</span><span class="n">Selection</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">addPv</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.addPv"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addPv">[docs]</a>        <span class="k">def</span> <span class="nf">addPv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pv</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Add another PV to the GUI on middle click.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        pv (str): String name of the PV to add</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;PV already in list&quot;</span>
+                        <span class="k">return</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pv_obj</span> <span class="o">=</span> <span class="n">epics</span><span class="o">.</span><span class="n">PV</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pv</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;bad string&quot;</span>
+                        <span class="k">return</span>
+                <span class="n">state</span><span class="o">=</span><span class="n">pv_obj</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+                <span class="n">state</span><span class="o">=</span><span class="n">pv_obj</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">state</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                        <span class="c">#self.pv_objects[pv]=epics.PV(pv)</span>
+                        <span class="c">#self.pv_objects[pv].add_callback(callback=self.PvGetCallBack)</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">pv_obj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initTable</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addCheckBoxes</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.getPvList"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvList">[docs]</a>        <span class="k">def</span> <span class="nf">getPvList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs_in</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Redefine method to add in checkboxes when getting the PV list.</span>
+<span class="sd">                </span>
+<span class="sd">                Copied from resetpanel.py        </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">print</span> <span class="s">&quot;LOADING:&quot;</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">pvs_in</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&#39;Exiting&#39;</span>
+                        <span class="k">return</span>
+        
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pvs_in</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">pvs_in</span><span class="p">):</span>
+                                <span class="n">l</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;#&#39;</span><span class="p">:</span>
+                                        <span class="k">continue</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs_in</span>
+
+                <span class="k">print</span> <span class="s">&quot;PVS LOADED&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getStartValues</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initTable</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addCheckBoxes</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.getRows"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getRows">[docs]</a>        <span class="k">def</span> <span class="nf">getRows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to set the UI checkbox state from slected rows.</span>
+<span class="sd">                </span>
+<span class="sd">                Loops though the rows and gets the selected state from the &#39;Active&quot; column.</span>
+<span class="sd">                If highlighted, check box is set the the &#39;state&#39; input arg.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        state (bool): Bool of whether the boxes should be checked or unchecked.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">rows</span><span class="o">=</span><span class="p">[]</span> 
+                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">():</span>
+                        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">row</span><span class="p">())</span> 
+                        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">row</span><span class="p">(),</span><span class="mi">3</span><span class="p">)</span>
+                        <span class="n">item</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+                        <span class="c">#print item.text()</span>
+                <span class="c">#print rows</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.addCheckBoxes"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.addCheckBoxes">[docs]</a>        <span class="k">def</span> <span class="nf">addCheckBoxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Creats additional column in UI table for check box.</span>
+<span class="sd">                </span>
+<span class="sd">                Must be called again if the user adds another PV with middle click function.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;PVs&quot;</span><span class="p">,</span><span class="s">&quot;Saved Value&quot;</span><span class="p">,</span><span class="s">&quot;Current Value&quot;</span><span class="p">,</span><span class="s">&quot;Active&quot;</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+                
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+
+                        <span class="n">checkBoxItem</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">()</span>
+                        <span class="n">checkBoxItem</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">)</span>
+                        <span class="n">flags</span> <span class="o">=</span> <span class="n">checkBoxItem</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span>
+                        <span class="n">flags</span> <span class="o">!=</span> <span class="n">flags</span>
+                        <span class="n">checkBoxItem</span><span class="o">.</span><span class="n">setFlags</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="n">checkBoxItem</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.uncheckBoxes"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.uncheckBoxes">[docs]</a>        <span class="k">def</span> <span class="nf">uncheckBoxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Method to unchecked all active boxes &quot;&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">item</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+                        <span class="n">item</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.resetAll"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.resetAll">[docs]</a>        <span class="k">def</span> <span class="nf">resetAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Resets all PVs with a box checked.</span>
+
+<span class="sd">                Rewrote this function to only change selected rows, not all rows.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">row</span><span class="p">,</span><span class="n">pv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">):</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span>
+                        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">checkState</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="n">pv</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.updateReference"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.updateReference">[docs]</a>        <span class="k">def</span> <span class="nf">updateReference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Update reference values for selected rows.</span>
+
+<span class="sd">                Rewrote this function to only update slected rows, not all.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">updateReference</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Getting vals...&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">pv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">checkState</span><span class="p">()</span>
+                        <span class="k">print</span> <span class="s">&quot;STATE&quot;</span>
+                        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">setItem</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTableWidgetItem</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">startValues</span><span class="p">[</span><span class="n">pv</span><span class="p">])))</span>
+                                <span class="c">#self.pv_objects[pv] = epics.PV(pv)</span>
+                                <span class="c">#self.pv_objects[pv].add_callback(callback=self.PvGetCallBack)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">updateReference</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Update Reference&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.getPvsFromCbState"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.getPvsFromCbState">[docs]</a>        <span class="k">def</span> <span class="nf">getPvsFromCbState</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Gets list of all pvs that have checked boxes.</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        List of PV strings</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="p">[]</span>  
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)):</span>
+                        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">checkState</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                <span class="n">pvs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">tableWidget</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">()))</span>
+                <span class="k">return</span> <span class="n">pvs</span> 
+
+        <span class="c">#switch string from to SLECTED</span></div>
+<div class="viewcode-block" id="ResetpanelBoxWindow.launchPopupAll"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.ResetpanelBoxWindow.launchPopupAll">[docs]</a>        <span class="k">def</span> <span class="nf">launchPopupAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Launches the ARE YOU SURE popup for pv reset value function. </span>
+
+<span class="sd">                Rewrote to change the warning string to say &quot;checkbox selected&quot; instead of &quot;all&quot; to avoid confusion with number of devices being reset. </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span> <span class="o">=</span> <span class="n">uic</span><span class="o">.</span><span class="n">loadUi</span><span class="p">(</span><span class="s">&quot;/home/physics/tcope/python/tools/resetpanel/UIareyousure.ui&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">exit</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">reset</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resetAll</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">reset</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Are you sure you want to implement </span><span class="se">\n</span><span class="s">changes to checkbox selected PVs?&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui_check</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../OcelotInterface.resetpanel.html#OcelotInterface.resetpanel.resetpanelbox.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Start up the main program if launch from comamnd line.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="s">&quot;./lclsparams&quot;</span>
+                
+        <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">ResetpanelBoxWindow</span><span class="p">()</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QIcon</span><span class="p">(</span><span class="s">&#39;/usr/local/lcls/tools/python/toolbox/py_logo.png&#39;</span><span class="p">))</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">getPvList</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">uncheckBoxes</span><span class="p">()</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,377 @@
+# -*- coding: utf-8 -*-
+"""
+Machine interface file for the LCLS to ocelot optimizer
+
+Tyler Cope, 2016
+"""
+
+import numpy as np
+import epics
+import time
+import sys
+import math
+
+class LCLSMachineInterface:
+        """ Start machine interface class """
+
+        def __init__(self):
+                """ Initialize parameters for the scanner class. """
+                self.secs_to_ave = 2         #time to integrate gas detector
+                self.getter = epicsGet()     #getter class for channel access
+		self.initErrorCheck() #Checks for errors and trimming
+
+        #=================================================================# 
+        # -------------- Original interface file functions -------------- #
+        #=================================================================# 
+
+        def get_alarms(self):
+                """ Does not need alarms for now, proabaly dont need this with LCLS MPS. """
+                return [0.0]
+        
+	def initErrorCheck(self):
+                """
+                Initialize PVs and setting used in the errorCheck method.
+                """
+                #setup pvs to check
+                self.error_bcs      = "BCS:MCC0:1:BEAMPMSV"
+                self.error_mps      = "SIOC:SYS0:ML00:CALCOUT989"
+                self.error_gaurdian = "SIOC:SYS0:ML00:AO466"
+                self.error_und_tmit = "BPMS:UND1:3290:TMITTH"
+		self.trimPV = "SIOC:SYS0:ML00:CALC303" #threw trim PV here for simplicity
+		self.updatePV = 'SIOC:SYS0:ML03:AO717'
+
+                #pv to bypass the error pause
+                self.error_bypass  = "SIOC:SYS0:ML00:CALCOUT990"
+                self.error_tripped = "SIOC:SYS0:ML00:CALCOUT991"
+
+                #set the unlatch pv to zero
+                epics.caput(self.error_bypass, 0)
+                epics.caput(self.error_tripped,0)	
+
+	def errorCheck(self):
+                """
+                Method that check the state of BCS, MPS, Gaurdian, UND-TMIT and pauses GP if there is a problem.
+                """
+                while 1:
+                        #check for bad state
+			if epics.caget(self.error_bypass)     == 1:
+				out_msg="Bypass flag is TRUE"
+                        elif epics.caget(self.error_bcs)      != 1:
+                                out_msg="BCS tripped"
+                        elif epics.caget(self.error_mps)      != 0:
+                                out_msg="MPS tripped"
+			elif epics.caget(self.trimPV)        !=0:
+				out_msg = "Waiting for Trim"
+                        elif epics.caget(self.error_gaurdian) != 0:
+                                out_msg="Gaurdian tripped"
+			elif epics.caget(self.updatePV)        !=0:
+				out_msg = "Waiting for objective function to update"
+                        #elif epics.caget(self.error_und_tmit) < 5.0e7:
+                        #        out_msg="UND Tmit Low"
+                        else:
+                                out_msg='Everything Okay'
+
+                        #exit if the stop button is set
+                        #if not self.mi.getter.caget("SIOC:SYS0:ML03:AO702"):
+			if not epics.caget("SIOC:SYS0:ML03:AO702"):
+                                break
+
+                        #set the error check message
+                        epics.caput ("SIOC:SYS0:ML00:CA000",out_msg)
+                        print out_msg
+
+                        #break out if error check is bypassed
+                        if (out_msg=="Bypass flag is TRUE"):
+                                break
+
+                        #break out if everything is okay
+                        if (out_msg=="Everything Okay"):
+                                epics.caput(self.error_tripped,0)
+                                break
+				#return
+                        else:
+                                epics.caput(self.error_tripped,1)
+                        time.sleep(0.1)
+
+        def get_sase(self, scale = False, seconds=1):
+                """
+                Returns data for the ojective function (sase) from the selected detector PV.
+
+                At lcls the repetition is  120Hz and the readout buf size is 2800.
+                The last 120 entries correspond to pulse energies over past 1 second.
+
+                Args:
+                        seconds (float): Variable input on how many seconds to average data
+
+                Returns:
+                        Float of SASE or other detecor measurment
+                """       
+                datain = self.getter.caget(self.detector)
+                try: #try to average over and array input
+			dataout = np.mean(datain[-(seconds*120):])
+			sigma   = np.std( datain[-(seconds*120):])
+                except: #if average fails use the scaler input
+                        print "Detector is not a waveform PV, using scalar value"
+                        dataout = datain
+                        sigma   = -1
+		if scale:
+			scaleFactor = self.getter.caget('SIOC:SYS0:ML03:AO458')
+			dataout = scaleFactor*dataout
+                self.record_data(dataout,sigma)
+                return dataout
+
+        def get_value(self, device_name):
+                """
+                Getter function for lcls.
+
+                Args:
+                        device_name (str): String of the pv name used in caget
+
+                Returns:
+                        Data from caget, variable data type depending on PV
+                """
+                return self.getter.caget(str(device_name))
+        
+        def set_value(self, device_name, val, num_iters, step, trim=False, updated = False, gain = 1, mu = 1):
+                """
+                Setter function for lcls.
+                
+                Args:
+                        device_name (str): String of the pv name used in caput 
+                        val (variable): Value to caput to device, variable data type depending on PV
+                """
+                unnormed = self.unnormalize(device_name,val,gain, mu)
+                epics.caput(device_name, unnormed)
+		if step == (num_iters-1):
+
+			if trim and not updated:
+				epics.caput(self.trimPV, 1)
+				epics.caput(self.updatePV, 0)
+				self.errorCheck()
+			elif updated and not trim:
+				epics.caput(self.trimPV, 0)
+				epics.caput(self.updatePV, 1)
+				self.errorCheck()
+			elif updated and trim:
+				epics.caput(self.trimPV, 1)
+				epics.caput(self.updatePV, 1)
+				self.errorCheck()
+			else:
+				epics.caput(self.trimPV, 0)
+				epics.caput(self.updatePV, 0)
+				self.errorCheck()
+
+        def init_corrector_vals(self, correctors, gain, mu = 1):
+                """
+                Gathers starting values for the correcters/devices.
+               
+                Args:
+                        correctors ([str]): list of pv names
+
+                Returns:
+                        Float list of corrector start values 
+                """
+                vals = [0.0]*len(correctors) #np.zeros(len(correctors))
+                for i in range(len(correctors)):
+                        mag_channel = correctors[i]
+                        val = self.getter.caget(str(mag_channel))
+                        #normalize val
+                        val = self.normalize(correctors[i],val,gain, mu[i])
+                        vals[i] = val 
+                return vals
+
+	def set_mu(self, correctors, gain):
+                """
+                Gathers starting values for the correcters/devices.
+               
+                Args:
+                        correctors ([str]): list of pv names
+
+                Returns:
+                        Float list of corrector start values 
+                """
+                mus = [0.0]*len(correctors) 
+                for i in range(len(correctors)):
+                        mag_channel = correctors[i]
+                        mu = self.getter.caget(str(mag_channel))
+			munew = mu - gain*math.sqrt(abs(mu))
+                        #normalize val
+                        #mu = self.normalize(correctors[i],val,gain)
+                        mus[i] = munew
+                return mus
+
+        #========================================================================# 
+        # --------------- New setup functions and data recording --------------- #
+        #========================================================================# 
+
+        def setUpDetector(self,pvs,detector="GDET:FEE1:241:ENRCHSTBR"):
+                """
+                Initializes detector parameter to optimize.
+                Usefull for switching desired parameter from GUI.
+
+                Default PV is the gas detector: GDET:FEE1:241:ENRCHSTBR
+
+                Args:
+                        pvs ([str]): List of PV names 
+                        detector (str): String of the detector PV name, usually gas detector but can change
+                """
+                self.detector = detector
+                self.setup_data_record(pvs) #reinit the data recording
+
+        def setup_data_record(self,pvs):
+                """
+                Initializing blank arrays for data storage.
+                
+                Args:
+                        pvs ([str]): List of pv names
+                """
+                self.pvs = pvs
+                self.data = {} #dict of all devices deing scanned
+                self.data[self.detector] = [] #detector data array
+                self.data['DetectorStd'] = [] #detector std array
+                self.data['timestamps']  = [] #timestamp array
+                for pv in pvs:
+                        self.data[pv] = []
+
+        def record_data(self,gdet,sigma):
+                """
+                Get data for devices everytime the SASE is measured to save syncronous data.
+                
+                Args:
+                        gdet (str): String of the detector PV, usually gas detector
+                        simga (float): Float of the measurement standard deviation
+                
+                """
+                self.data[self.detector].append(gdet) 
+                self.data['DetectorStd'].append(sigma)
+                self.data['timestamps'].append(time.time())
+                for pv in self.pvs:
+                        self.data[pv].append(self.getter.caget(pv))
+
+
+        #=======================================================# 
+        # -------------- Normalization functions -------------- #
+        #=======================================================# 
+
+    
+        def normalize(self,corrector, x,gain, mu):
+                """
+                Transform to normalized data for optimizer input.
+
+                Args:
+                        correcter: pv name of the devices
+                        x: the input x val to be normalized
+
+                Returns:
+                        Float normalized value of x 
+                """
+		drv = self.getter.caget('SIOC:SYS0:ML03:AO716')
+		if drv==1:
+			mu = gain*((self.getter.caget(corrector+'.HIHI')-self.getter.caget(corrector+'.LOLO')))
+			sig = math.sqrt(abs(mu))
+			y = (float(x)-mu)/(sig)
+		else:			
+			mu = mu
+			sig = math.sqrt(abs(mu))
+			y = (float(x)-mu)/(sig)
+		return y 
+
+        def unnormalize(self,corrector, y,gain, mu):
+
+                """
+                Transform back to to machine units for optimizer output 
+
+                Args:
+                        correcter: pv name of the devices
+                        x: the input x val to be normalized
+
+                Returns:
+                        Float un-normalized value of x 
+                """
+		drv = self.getter.caget('SIOC:SYS0:ML03:AO716')
+		if drv==1:
+			mu = gain*((self.getter.caget(corrector+'.HIHI')-self.getter.caget(corrector+'.LOLO')))
+			sig = math.sqrt(abs(mu))
+			x = (float(y)*(sig)+mu)
+		else:
+			mu = mu
+			sig = math.sqrt(abs(mu))
+			x = (float(y)*(sig)+mu)
+		return x
+
+class LCLSDeviceProperties:
+        
+        """ Start the device properties class """
+
+        def __init__(self):
+                self.getter = epicsGet()
+
+        def get_limits(self, device,percent=0.25):
+                """ 
+                Function to get device limits.
+                Executes on every iteration of the optimizer function evaluation.
+                Currently does not work with the normalization scheme.
+                Defaults to + 25% of the devices current values.
+
+                Args:
+                        device (str): PV name of the device to get a limit for
+                        percent (float): Generates a limit based on the percent away from the devices current value
+                """
+                val = self.start_values[device]
+                tol = abs(val*percent)
+                lim_lo = val-tol
+                lim_hi = val+tol
+                limits = [lim_lo,lim_hi]
+                #print device, 'LIMITS ->',limits
+                #return limits
+                #Dosnt work with normalizaiton, big limits
+                return [-10000,10000]
+
+    
+        def get_start_values(self,devices,percent=0.25):
+                """
+                Function to initialize the starting values for get_limits methomethodd.
+
+                Called from tuning file or GUI
+
+                Args:
+                        devices ([str]): PV list of devices
+                        percent (float): Percent around the mean to generate limits
+
+                """
+                self.start_values={}
+                self.norm_minmax={}
+                for d in devices:
+                        val = self.getter.caget(str(d))
+                        self.start_values[str(d)] = val
+                        tol = abs(val*percent)
+                        lim_lo = val-tol
+                        lim_hi = val+tol
+                        limits = [lim_lo,lim_hi]
+                        self.norm_minmax[str(d)] = [lim_lo,lim_hi]
+
+class epicsGet:
+
+    def __init__(self):
+        pass
+        ''' Separate getter class to add logic for dealing with channel access return errors '''
+
+    def caget(self,device_name):
+        #need to do this while/try loop stuff because of CA errors
+        #when channel acces trys to connect for the first time in a separate thread
+        #seems to be some problem with pyepics
+        data = None
+        ct = 0
+        while 1:
+           try:
+                   data = epics.caget(device_name)
+                   if data == None:
+                        continue
+                   return data
+           except:
+                   print "Error retriving ca data! Tyring to caget data again"
+                   time.sleep(.1)
+           ct+=1
+           if ct > 5:
+                   raise Exception("Too many caget trys ,exiting")
+                   return None

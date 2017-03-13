@@ -1,0 +1,182 @@
+"""
+Main Ocelot optimization file
+Contains the setup for using the scipy.optimize package run simplex and other algorothms
+Modifiedi for use at LCLS from Ilya's version
+"""
+
+import numpy as np
+import scipy.optimize as opt
+from time import sleep
+import epics
+import epicsGet
+
+class Optimizer:
+        def __init__(self, mi, dp, normalize=False):
+                self.debug   = False
+                self.mi      = mi
+                self.dp      = dp
+                self.timeout = 1.0
+                self.logging = False
+                self.kill    = False #intructed by tmc to terminate thread of this class               
+                self.getter = epicsGet.epicsGet();
+
+        def eval(self, seq, logging = False, log_file = None):
+                """
+                Run the sqeuence of tuning events
+                """
+                for s in seq:
+
+                        s.apply()
+
+        def max_sase(self,correctors, method = 'simplex', params = {}, opt_pointing = False):
+                """
+                Direct sase optimization with simplex, using correctors as a multiknob
+                """
+                if self.debug: print 'starting multiknob optimization, correctors = ', correctors
+
+                if opt_pointing:
+                        weight_gmd_bpm_1 = 10.0
+                        weight_gmd_bpm_2 = 10.0
+                else:
+                        weight_gmd_bpm_1 = 0.0
+                        weight_gmd_bpm_2 = 0.0
+                
+		self.mu = self.mi.set_mu(correctors,self.gain)
+		print self.mu
+
+                def error_func(x):
+
+                        if self.kill: 
+                                print 'Killed from external process'
+                                # NEW CODE - to kill if run from outside thread
+                                return
+
+                        pen_max = 100.0
+        
+                        alarm = np.max(self.mi.get_alarms())
+                        
+                        for i in xrange(len(x)):
+                                print '{0} x[{1}]={2}'.format(correctors[i], i, x[i])
+                                limits = self.dp.get_limits(correctors[i])
+                                if x[i] < limits[0] or x[i] > limits[1]:
+                                        print 'limits exceeded'
+                                        return pen_max
+        
+                        for i in xrange(len(correctors)):
+                                print 'setting', correctors[i], '->',x[i]
+                                self.mi.set_value(correctors[i], x[i],len(correctors), i, self.useTrim, self.updated,self.gain, self.mu[i])
+
+                        print('sleeping ' + str(self.timeout))
+
+                        sleep(self.timeout)
+                        print ('done sleeping ')
+
+                        sase = self.mi.get_sase(self.useScale,self.data_delay)
+                        alarm = np.max(self.mi.get_alarms())
+        
+                        if self.debug: print 'alarm:', alarm
+                        if self.debug: print 'sase:', sase
+        
+                        pen = 0.0
+        
+                        if alarm > 1.0:
+                                return pen_max
+                        if alarm > 0.7:
+                                return alarm * 50.0
+
+                        pen += alarm
+                        pen -= sase
+
+                        if self.debug: print 'penalty:', pen
+                
+                        return pen
+                
+
+                sase_ref = self.mi.get_sase(self.useScale)
+        
+                x = self.mi.init_corrector_vals(correctors,self.gain, self.mu)
+                x_init = x
+
+                if self.logging: 
+                        f = open(self.log_file,'a')
+                        f.write('\n*** optimization step ***\n')
+                        f.write(str(correctors) + '\n')
+                        f.write(method + '\n')
+                        f.write('x0=' + str(x_init) + '\n')
+                        f.write('sase0=' + str(sase_ref) + '\n')
+
+                if method == 'cg':
+                        print 'using CG optimizer, params:', params 
+                
+                        try:
+                                max_iter = params['maxiter']
+                        except KeyError:
+                                max_iter = 10 * len(x)
+
+                        try:
+                                epsilon = params['epsilon']
+                        except KeyError:
+                                epsilon = 0.1
+
+                        try:
+                                gtol = params['gtol']
+                        except KeyError:
+                                gtol = 1.e-3
+                                
+                        #opt.fmin_cg(error_func,x,gtol=gtol, epsilon = epsilon, maxiter=max_iter)
+                        opt.fmin_cg(error_func,x, epsilon = epsilon, maxiter=max_iter)
+                
+                if method == 'simplex':
+                        print 'using simplex optimizer, params:', params
+                
+                        try:
+                                max_iter = params['maxiter']
+                        except KeyError:
+                                max_iter = 10 * len(x)
+
+                        try:
+                                xtol = params['xtol']
+                        except KeyError:
+                                xtol = 1.e-3
+
+                        #opt.fmin(error_func,x,xtol=xtol, maxiter=max_iter,maxfun=max_iter)
+                        opt.fmin(error_func,x, maxiter=max_iter,maxfun=max_iter)
+                
+                if method == 'powell': 
+                        print 'using powell optimizer, params:', params
+                
+                        try:
+                                max_iter = params['maxiter']
+                        except KeyError:
+                                max_iter = 10 * len(x)
+
+                        try:
+                                xtol = params['xtol']
+                        except KeyError:
+                                xtol = 1.e-3
+
+                        #opt.fmin_powell(error_func,x,xtol=xtol, maxiter=max_iter,maxfun=max_iter)
+                        opt.fmin_powell(error_func,x, maxiter=max_iter,maxfun=max_iter)
+
+
+                if method == 'fancy_stuff_from': 
+                        print 'using fancy optimizer, params:', params
+                        pass
+
+                sase_new = self.mi.get_sase(self.useScale)
+                
+                print 'step ended changing sase from/to', sase_ref, sase_new
+
+                if self.logging:
+                        f.write('sase_new=' + str(sase_new) + '\n')
+                        f.close()
+
+class Action:
+        def __init__(self, func, args = None, id = None):
+                self.func = func
+                self.args = args
+                self.id = id
+        def apply(self):
+                print 'applying...', self.id
+                self.func(*self.args)
+

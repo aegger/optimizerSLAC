@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.mint.lcls_interface &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.mint.lcls_interface</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Machine interface file for the LCLS to ocelot optimizer</span>
+
+<span class="sd">Tyler Cope, 2016</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;..&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">epicsGet</span> <span class="kn">import</span> <span class="n">epicsGet</span>
+<span class="kn">from</span> <span class="nn">taperThread</span> <span class="kn">import</span> <span class="n">Taper</span>
+
+<div class="viewcode-block" id="LCLSMachineInterface"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface">[docs]</a><span class="k">class</span> <span class="nc">LCLSMachineInterface</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Start machine interface class &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Initialize parameters for the scanner class. &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">secs_to_ave</span> <span class="o">=</span> <span class="mi">2</span>         <span class="c">#time to integrate gas detector</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getter</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="p">()</span>     <span class="c">#getter class for channel access</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputNormParams</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#normalization parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="o">=</span> <span class="bp">False</span> <span class="c">#normalization parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taperParams</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c">#=================================================================# </span>
+        <span class="c"># -------------- Original interface file functions -------------- #</span>
+        <span class="c">#=================================================================# </span>
+
+<div class="viewcode-block" id="LCLSMachineInterface.get_alarms"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_alarms">[docs]</a>        <span class="k">def</span> <span class="nf">get_alarms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Does not need alarms for now, proabaly dont need this with LCLS MPS. &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+        </div>
+<div class="viewcode-block" id="LCLSMachineInterface.get_sase"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_sase">[docs]</a>        <span class="k">def</span> <span class="nf">get_sase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Returns data for the ojective function (sase) from the selected detector PV.</span>
+
+<span class="sd">                At lcls the repetition is  120Hz and the readout buf size is 2800.</span>
+<span class="sd">                The last 120 entries correspond to pulse energies over past 1 second.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        seconds (float): Variable input on how many seconds to average data</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float of SASE or other detecor measurment</span>
+<span class="sd">                &quot;&quot;&quot;</span>       
+                <span class="n">datain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span> <span class="c">#try to average over and array input</span>
+                        <span class="k">if</span> <span class="n">seconds</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="c">#if a resquested seconds is passed</span>
+                                <span class="n">dataout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">datain</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">secs_to_ave</span><span class="o">*</span><span class="mi">120</span><span class="p">):])</span>
+                                <span class="n">sigma</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span> <span class="n">datain</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">secs_to_ave</span><span class="o">*</span><span class="mi">120</span><span class="p">):])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="n">dataout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">datain</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">seconds</span><span class="o">*</span><span class="mi">120</span><span class="p">):])</span>
+                                <span class="n">sigma</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span> <span class="n">datain</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">seconds</span><span class="o">*</span><span class="mi">120</span><span class="p">):])</span>
+                <span class="k">except</span><span class="p">:</span> <span class="c">#if average fails use the scaler input</span>
+                        <span class="k">print</span> <span class="s">&quot;Detector is not a waveform PV, using scalar value&quot;</span>
+                        <span class="n">dataout</span> <span class="o">=</span> <span class="n">datain</span>
+                        <span class="n">sigma</span>   <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">record_data</span><span class="p">(</span><span class="n">dataout</span><span class="p">,</span><span class="n">sigma</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">dataout</span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.get_value"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_value">[docs]</a>        <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_name</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Getter function for lcls.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        device_name (str): String of the pv name used in caget</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Data from caget, variable data type depending on PV</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">device_name</span><span class="p">))</span>
+        </div>
+<div class="viewcode-block" id="LCLSMachineInterface.set_value"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.set_value">[docs]</a>        <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_name</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Setter function for lcls.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        device_name (str): String of the pv name used in caput </span>
+<span class="sd">                        val (variable): Value to caput to device, variable data type depending on PV</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">unnormed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unnormalize</span><span class="p">(</span><span class="n">device_name</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="n">device_name</span><span class="p">,</span> <span class="n">unnormed</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.init_corrector_vals"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.init_corrector_vals">[docs]</a>        <span class="k">def</span> <span class="nf">init_corrector_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correctors</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Gathers starting values for the correcters/devices.</span>
+<span class="sd">               </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        correctors ([str]): list of pv names</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float list of corrector start values </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">correctors</span><span class="p">)</span> <span class="c">#np.zeros(len(correctors))</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">correctors</span><span class="p">)):</span>
+                        <span class="n">mag_channel</span> <span class="o">=</span> <span class="n">correctors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">mag_channel</span><span class="p">))</span>
+                        <span class="c">#normalize val</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">correctors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span> 
+                <span class="k">return</span> <span class="n">vals</span>
+
+        <span class="c">#========================================================================# </span>
+        <span class="c"># --------------- New setup functions and data recording --------------- #</span>
+        <span class="c">#========================================================================# </span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.setUpDetector"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setUpDetector">[docs]</a>        <span class="k">def</span> <span class="nf">setUpDetector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs</span><span class="p">,</span><span class="n">detector</span><span class="o">=</span><span class="s">&quot;GDET:FEE1:241:ENRCHSTBR&quot;</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initializes detector parameter to optimize.</span>
+<span class="sd">                Usefull for switching desired parameter from GUI.</span>
+
+<span class="sd">                Default PV is the gas detector: GDET:FEE1:241:ENRCHSTBR</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs ([str]): List of PV names </span>
+<span class="sd">                        detector (str): String of the detector PV name, usually gas detector but can change</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">detector</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setup_data_record</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span> <span class="c">#reinit the data recording</span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.setup_data_record"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setup_data_record">[docs]</a>        <span class="k">def</span> <span class="nf">setup_data_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initializing blank arrays for data storage.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        pvs ([str]): List of pv names</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="n">pvs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#dict of all devices deing scanned</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span> <span class="c">#detector data array</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;DetectorStd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span> <span class="c">#detector std array</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;timestamps&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="p">[]</span> <span class="c">#timestamp array</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="n">pvs</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.record_data"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.record_data">[docs]</a>        <span class="k">def</span> <span class="nf">record_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">gdet</span><span class="p">,</span><span class="n">sigma</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Get data for devices everytime the SASE is measured to save syncronous data.</span>
+<span class="sd">                </span>
+<span class="sd">                Args:</span>
+<span class="sd">                        gdet (str): String of the detector PV, usually gas detector</span>
+<span class="sd">                        simga (float): Float of the measurement standard deviation</span>
+<span class="sd">                </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gdet</span><span class="p">)</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;DetectorStd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;timestamps&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pv</span><span class="p">))</span>
+
+
+        <span class="c">#=======================================================# </span>
+        <span class="c"># -------------- Normalization functions -------------- #</span>
+        <span class="c">#=======================================================# </span>
+
+    </div>
+<div class="viewcode-block" id="LCLSMachineInterface.normalize"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.normalize">[docs]</a>        <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">corrector</span><span class="p">,</span><span class="n">x</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Transform to normalized data for optimizer input.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        correcter: pv name of the devices</span>
+<span class="sd">                        x: the input x val to be normalized</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float normalized value of x </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">Taper</span><span class="p">()</span><span class="o">.</span><span class="n">isTaperPV</span><span class="p">(</span><span class="n">corrector</span><span class="p">)):</span>
+                        <span class="n">mu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span><span class="n">mu</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+                        <span class="k">print</span> <span class="s">&quot;SCALED TAPER&quot;</span><span class="p">,</span><span class="n">y</span>
+                        <span class="k">return</span> <span class="n">y</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">x</span> 
+                <span class="n">mu</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNormParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNormParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="n">mu</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&quot;NORMALIZED&quot;</span><span class="p">,</span><span class="n">y</span>
+                <span class="k">return</span> <span class="n">y</span>
+</div>
+<div class="viewcode-block" id="LCLSMachineInterface.unnormalize"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.unnormalize">[docs]</a>        <span class="k">def</span> <span class="nf">unnormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">corrector</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Transform back to to machine units for optimizer output </span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        correcter: pv name of the devices</span>
+<span class="sd">                        x: the input x val to be normalized</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                        Float un-normalized value of x </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">Taper</span><span class="p">()</span><span class="o">.</span><span class="n">isTaperPV</span><span class="p">(</span><span class="n">corrector</span><span class="p">)):</span>
+                        <span class="n">mu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span><span class="o">+</span><span class="n">mu</span>
+                        <span class="k">print</span> <span class="s">&quot;UNSCALED TAPER&quot;</span><span class="p">,</span><span class="n">x</span>
+                        <span class="k">return</span> <span class="n">x</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">y</span>
+                <span class="n">mu</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNormParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNormParams</span><span class="p">[</span><span class="n">corrector</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span><span class="o">+</span><span class="n">mu</span>
+                <span class="k">print</span> <span class="s">&quot;UN-NORMALIZED&quot;</span><span class="p">,</span><span class="n">x</span>
+                <span class="k">return</span> <span class="n">x</span>
+</div></div>
+<div class="viewcode-block" id="LCLSDeviceProperties"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties">[docs]</a><span class="k">class</span> <span class="nc">LCLSDeviceProperties</span><span class="p">:</span>
+        
+        <span class="sd">&quot;&quot;&quot; Start the device properties class &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getter</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LCLSDeviceProperties.get_limits"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_limits">[docs]</a>        <span class="k">def</span> <span class="nf">get_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span><span class="n">percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Function to get device limits.</span>
+<span class="sd">                Executes on every iteration of the optimizer function evaluation.</span>
+<span class="sd">                Currently does not work with the normalization scheme.</span>
+<span class="sd">                Defaults to + 25% of the devices current values.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        device (str): PV name of the device to get a limit for</span>
+<span class="sd">                        percent (float): Generates a limit based on the percent away from the devices current value</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_values</span><span class="p">[</span><span class="n">device</span><span class="p">]</span>
+                <span class="n">tol</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">val</span><span class="o">*</span><span class="n">percent</span><span class="p">)</span>
+                <span class="n">lim_lo</span> <span class="o">=</span> <span class="n">val</span><span class="o">-</span><span class="n">tol</span>
+                <span class="n">lim_hi</span> <span class="o">=</span> <span class="n">val</span><span class="o">+</span><span class="n">tol</span>
+                <span class="n">limits</span> <span class="o">=</span> <span class="p">[</span><span class="n">lim_lo</span><span class="p">,</span><span class="n">lim_hi</span><span class="p">]</span>
+                <span class="c">#print device, &#39;LIMITS -&gt;&#39;,limits</span>
+                <span class="c">#return limits</span>
+                <span class="c">#Dosnt work with normalizaiton, big limits</span>
+                <span class="k">return</span> <span class="p">[</span><span class="o">-</span><span class="mi">10000</span><span class="p">,</span><span class="mi">10000</span><span class="p">]</span>
+
+    </div>
+<div class="viewcode-block" id="LCLSDeviceProperties.get_start_values"><a class="viewcode-back" href="../../../OcelotInterface.mint.html#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_start_values">[docs]</a>        <span class="k">def</span> <span class="nf">get_start_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">devices</span><span class="p">,</span><span class="n">percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Function to initialize the starting values for get_limits methomethodd.</span>
+
+<span class="sd">                Called from tuning file or GUI</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        devices ([str]): PV list of devices</span>
+<span class="sd">                        percent (float): Percent around the mean to generate limits</span>
+
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_values</span><span class="o">=</span><span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_minmax</span><span class="o">=</span><span class="p">{}</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getter</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">start_values</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span> <span class="o">=</span> <span class="n">val</span>
+                        <span class="n">tol</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">val</span><span class="o">*</span><span class="n">percent</span><span class="p">)</span>
+                        <span class="n">lim_lo</span> <span class="o">=</span> <span class="n">val</span><span class="o">-</span><span class="n">tol</span>
+                        <span class="n">lim_hi</span> <span class="o">=</span> <span class="n">val</span><span class="o">+</span><span class="n">tol</span>
+                        <span class="n">limits</span> <span class="o">=</span> <span class="p">[</span><span class="n">lim_lo</span><span class="p">,</span><span class="n">lim_hi</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">norm_minmax</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">lim_lo</span><span class="p">,</span><span class="n">lim_hi</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

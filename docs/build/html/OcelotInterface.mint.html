@@ -1,0 +1,366 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mint Package &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="index.html" />
+    <link rel="up" title="OcelotInterface Package" href="OcelotInterface.html" />
+    <link rel="next" title="parameters Package" href="OcelotInterface.parameters.html" />
+    <link rel="prev" title="GP Package" href="OcelotInterface.GP.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.parameters.html" title="parameters Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.GP.html" title="GP Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >&lt;no title&gt;</a> &raquo;</li>
+          <li><a href="OcelotInterface.html" accesskey="U">OcelotInterface Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mint-package">
+<h1>mint Package<a class="headerlink" href="#mint-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-OcelotInterface.mint.lcls_interface">
+<span id="lcls-interface-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lcls_interface</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.mint.lcls_interface" title="Permalink to this headline">¶</a></h2>
+<p>Machine interface file for the LCLS to ocelot optimizer</p>
+<p>Tyler Cope, 2016</p>
+<dl class="class">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSDeviceProperties">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.mint.lcls_interface.</tt><tt class="descname">LCLSDeviceProperties</tt><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSDeviceProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the device properties class</p>
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_limits">
+<tt class="descname">get_limits</tt><big>(</big><em>device</em>, <em>percent=0.25</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSDeviceProperties.get_limits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_limits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to get device limits.
+Executes on every iteration of the optimizer function evaluation.
+Currently does not work with the normalization scheme.
+Defaults to + 25% of the devices current values.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>device (str): PV name of the device to get a limit for
+percent (float): Generates a limit based on the percent away from the devices current value</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_start_values">
+<tt class="descname">get_start_values</tt><big>(</big><em>devices</em>, <em>percent=0.25</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSDeviceProperties.get_start_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSDeviceProperties.get_start_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to initialize the starting values for get_limits methomethodd.</p>
+<p>Called from tuning file or GUI</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>devices ([str]): PV list of devices
+percent (float): Percent around the mean to generate limits</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.mint.lcls_interface.</tt><tt class="descname">LCLSMachineInterface</tt><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start machine interface class</p>
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.errorCheck">
+<tt class="descname">errorCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.errorCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that check the state of BCS, MPS, Gaurdian, UND-TMIT and pauses GP if there is a problem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_alarms">
+<tt class="descname">get_alarms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.get_alarms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_alarms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does not need alarms for now, proabaly dont need this with LCLS MPS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_sase">
+<tt class="descname">get_sase</tt><big>(</big><em>scale=False</em>, <em>seconds=1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.get_sase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_sase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data for the ojective function (sase) from the selected detector PV.</p>
+<p>At lcls the repetition is  120Hz and the readout buf size is 2800.
+The last 120 entries correspond to pulse energies over past 1 second.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>seconds (float): Variable input on how many seconds to average data</dd>
+<dt>Returns:</dt>
+<dd>Float of SASE or other detecor measurment</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_value">
+<tt class="descname">get_value</tt><big>(</big><em>device_name</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.get_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Getter function for lcls.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>device_name (str): String of the pv name used in caget</dd>
+<dt>Returns:</dt>
+<dd>Data from caget, variable data type depending on PV</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.initErrorCheck">
+<tt class="descname">initErrorCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.initErrorCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize PVs and setting used in the errorCheck method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.init_corrector_vals">
+<tt class="descname">init_corrector_vals</tt><big>(</big><em>correctors</em>, <em>gain</em>, <em>mu=1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.init_corrector_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.init_corrector_vals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gathers starting values for the correcters/devices.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>correctors ([str]): list of pv names</dd>
+<dt>Returns:</dt>
+<dd>Float list of corrector start values</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.normalize">
+<tt class="descname">normalize</tt><big>(</big><em>corrector</em>, <em>x</em>, <em>gain</em>, <em>mu</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform to normalized data for optimizer input.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>correcter: pv name of the devices
+x: the input x val to be normalized</dd>
+<dt>Returns:</dt>
+<dd>Float normalized value of x</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.record_data">
+<tt class="descname">record_data</tt><big>(</big><em>gdet</em>, <em>sigma</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.record_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.record_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get data for devices everytime the SASE is measured to save syncronous data.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>gdet (str): String of the detector PV, usually gas detector
+simga (float): Float of the measurement standard deviation</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setUpDetector">
+<tt class="descname">setUpDetector</tt><big>(</big><em>pvs</em>, <em>detector='GDET:FEE1:241:ENRCHSTBR'</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.setUpDetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setUpDetector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes detector parameter to optimize.
+Usefull for switching desired parameter from GUI.</p>
+<p>Default PV is the gas detector: GDET:FEE1:241:ENRCHSTBR</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pvs ([str]): List of PV names 
+detector (str): String of the detector PV name, usually gas detector but can change</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.set_mu">
+<tt class="descname">set_mu</tt><big>(</big><em>correctors</em>, <em>gain</em><big>)</big><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.set_mu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gathers starting values for the correcters/devices.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>correctors ([str]): list of pv names</dd>
+<dt>Returns:</dt>
+<dd>Float list of corrector start values</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.set_value">
+<tt class="descname">set_value</tt><big>(</big><em>device_name</em>, <em>val</em>, <em>num_iters</em>, <em>step</em>, <em>trim=False</em>, <em>updated=False</em>, <em>gain=1</em>, <em>mu=1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setter function for lcls.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>device_name (str): String of the pv name used in caput 
+val (variable): Value to caput to device, variable data type depending on PV</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setup_data_record">
+<tt class="descname">setup_data_record</tt><big>(</big><em>pvs</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.setup_data_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.setup_data_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializing blank arrays for data storage.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>pvs ([str]): List of pv names</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.LCLSMachineInterface.unnormalize">
+<tt class="descname">unnormalize</tt><big>(</big><em>corrector</em>, <em>y</em>, <em>gain</em>, <em>mu</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_interface.html#LCLSMachineInterface.unnormalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.LCLSMachineInterface.unnormalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform back to to machine units for optimizer output</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>correcter: pv name of the devices
+x: the input x val to be normalized</dd>
+<dt>Returns:</dt>
+<dd>Float un-normalized value of x</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.mint.lcls_interface.epicsGet">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.mint.lcls_interface.</tt><tt class="descname">epicsGet</tt><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.epicsGet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="OcelotInterface.mint.lcls_interface.epicsGet.caget">
+<tt class="descname">caget</tt><big>(</big><em>device_name</em><big>)</big><a class="headerlink" href="#OcelotInterface.mint.lcls_interface.epicsGet.caget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.mint.lcls_tune">
+<span id="lcls-tune-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lcls_tune</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.mint.lcls_tune" title="Permalink to this headline">¶</a></h2>
+<p>Example tuning script for LCLS</p>
+<dl class="function">
+<dt id="OcelotInterface.mint.lcls_tune.lcls_tune">
+<tt class="descclassname">OcelotInterface.mint.lcls_tune.</tt><tt class="descname">lcls_tune</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/lcls_tune.html#lcls_tune"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.lcls_tune.lcls_tune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to launch a simplex scan script on LCLS</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.mint.mint">
+<span id="mint-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mint</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.mint.mint" title="Permalink to this headline">¶</a></h2>
+<p>Main Ocelot optimization file
+Contains the setup for using the scipy.optimize package run simplex and other algorothms
+Modifiedi for use at LCLS from Ilya&#8217;s version</p>
+<dl class="class">
+<dt id="OcelotInterface.mint.mint.Action">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.mint.mint.</tt><tt class="descname">Action</tt><big>(</big><em>func</em>, <em>args=None</em>, <em>id=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/mint.html#Action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.mint.Action" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="OcelotInterface.mint.mint.Action.apply">
+<tt class="descname">apply</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/mint.html#Action.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.mint.Action.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.mint.mint.Optimizer">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.mint.mint.</tt><tt class="descname">Optimizer</tt><big>(</big><em>mi</em>, <em>dp</em>, <em>normalize=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/mint.html#Optimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.mint.Optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="OcelotInterface.mint.mint.Optimizer.eval">
+<tt class="descname">eval</tt><big>(</big><em>seq</em>, <em>logging=False</em>, <em>log_file=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/mint.html#Optimizer.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.mint.Optimizer.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the sqeuence of tuning events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.mint.mint.Optimizer.max_sase">
+<tt class="descname">max_sase</tt><big>(</big><em>correctors</em>, <em>method='simplex'</em>, <em>params={}</em>, <em>opt_pointing=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/mint/mint.html#Optimizer.max_sase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.mint.mint.Optimizer.max_sase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Direct sase optimization with simplex, using correctors as a multiknob</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mint Package</a><ul>
+<li><a class="reference internal" href="#module-OcelotInterface.mint.lcls_interface"><tt class="docutils literal"><span class="pre">lcls_interface</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.mint.lcls_tune"><tt class="docutils literal"><span class="pre">lcls_tune</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.mint.mint"><tt class="docutils literal"><span class="pre">mint</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="OcelotInterface.GP.html"
+                        title="previous chapter">GP Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="OcelotInterface.parameters.html"
+                        title="next chapter">parameters Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/OcelotInterface.mint.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.parameters.html" title="parameters Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="OcelotInterface.GP.html" title="GP Package"
+             >previous</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >&lt;no title&gt;</a> &raquo;</li>
+          <li><a href="OcelotInterface.html" >OcelotInterface Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

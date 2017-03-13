@@ -1,0 +1,765 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GP Package &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="gp-package">
+<h1>GP Package<a class="headerlink" href="#gp-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-OcelotInterface.GP.BasicInterfaces">
+<span id="basicinterfaces-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">BasicInterfaces</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.BasicInterfaces" title="Permalink to this headline">¶</a></h2>
+<p>Contains simple interfaces for the Bayes optimization class.</p>
+<p>Each interface must have the getState and setX methods as used below.</p>
+<dl class="class">
+<dt id="OcelotInterface.GP.BasicInterfaces.GPint">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.BasicInterfaces.</tt><tt class="descname">GPint</tt><big>(</big><em>x_init</em>, <em>model</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#GPint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.GPint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.GPint.getState">
+<tt class="descname">getState</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#GPint.getState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.GPint.getState" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.GPint.setX">
+<tt class="descname">setX</tt><big>(</big><em>x_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#GPint.setX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.GPint.setX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.GP.BasicInterfaces.TestInterface">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.BasicInterfaces.</tt><tt class="descname">TestInterface</tt><big>(</big><em>x_init</em>, <em>y_init=0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#TestInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.TestInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.TestInterface.getState">
+<tt class="descname">getState</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#TestInterface.getState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.TestInterface.getState" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.TestInterface.setX">
+<tt class="descname">setX</tt><big>(</big><em>x_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#TestInterface.setX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.TestInterface.setX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="OcelotInterface.GP.BasicInterfaces.fint">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.BasicInterfaces.</tt><tt class="descname">fint</tt><big>(</big><em>x_init</em>, <em>noise=0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#fint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.fint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.fint.f">
+<tt class="descname">f</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#fint.f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.fint.f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.fint.getState">
+<tt class="descname">getState</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#fint.getState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.fint.getState" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BasicInterfaces.fint.setX">
+<tt class="descname">setX</tt><big>(</big><em>x_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BasicInterfaces.html#fint.setX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BasicInterfaces.fint.setX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.BayesOpt_oldcopy">
+<span id="bayesopt-oldcopy-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">BayesOpt_oldcopy</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.BayesOpt_oldcopy" title="Permalink to this headline">¶</a></h2>
+<p>Contains the Bayes optimization class.
+Initialization parameters:</p>
+<blockquote>
+<div><p>model: an object with methods &#8216;predict&#8217;, &#8216;fit&#8217;, and &#8216;update&#8217;
+interface: an object which supplies the state of the system and</p>
+<blockquote>
+<div><p>allows for changing the system&#8217;s x-value.
+Should have methods &#8216;(x,y) = intfc.getState()&#8217; and &#8216;intfc.setX(x_new)&#8217;.
+Note that this interface system is rough, and used for testing and</p>
+<blockquote>
+<div>as a placeholder for the machine interface.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>acq_func: specifies how the optimizer should choose its next point.</dt>
+<dd><p class="first">&#8216;EI&#8217;: uses expected improvement. The interface should supply y-values.
+&#8216;testEI&#8217;: uses EI over a finite set of points. This set must be</p>
+<blockquote class="last">
+<div>provided as alt_param, and the interface need not supply
+meaningful y-values.</div></blockquote>
+</dd>
+</dl>
+<p>xi: exploration parameter suggested in some Bayesian opt. literature
+alt_param: currently only used when acq_func==&#8217;testEI&#8217;
+m: the maximum size of model; can be ignored unless passing an untrained</p>
+<blockquote>
+<div>SPGP or other model which doesn&#8217;t already know its own size</div></blockquote>
+<dl class="docutils">
+<dt>bounds: a tuple of (min,max) tuples specifying search bounds for each</dt>
+<dd>input dimension. Generally leads to better performance.</dd>
+<dt>prior_data: input data to train the model on initially. For convenience,</dt>
+<dd><p class="first">since the model can be trained externally as well.
+Assumed to be a pandas DataFrame of shape (n, dim+1) where the last</p>
+<blockquote class="last">
+<div>column contains y-values.</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Methods:</dt>
+<dd><dl class="first last docutils">
+<dt>acquire(): Returns the point that maximizes the acquisition function.</dt>
+<dd><p class="first">For &#8216;testEI&#8217;, returns the index of the point instead.
+For normal acquisition, currently uses the bounded L-BFGS optimizer.</p>
+<blockquote class="last">
+<div>Haven&#8217;t tested alternatives much.</div></blockquote>
+</dd>
+<dt>best_seen(): Uses the model to make predictions at every observed point,</dt>
+<dd>returning the best-performing (x,y) pair. This is more robust to noise
+than returning the best observation, but could be replaced by other,
+faster methods.</dd>
+<dt>OptIter(): The main method for Bayesian optimization. Maximizes the</dt>
+<dd>acquisition function, then uses the interface to test this point and
+update the model.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="class">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.BayesOpt_oldcopy.</tt><tt class="descname">BayesOpt</tt><big>(</big><em>model</em>, <em>interface</em>, <em>acq_func='EI'</em>, <em>xi=0.0</em>, <em>alt_param=-1</em>, <em>m=200</em>, <em>bounds=None</em>, <em>prior_data=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#BayesOpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.OptIter">
+<tt class="descname">OptIter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#BayesOpt.OptIter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.OptIter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.acquire">
+<tt class="descname">acquire</tt><big>(</big><em>override_test=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#BayesOpt.acquire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.acquire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.best_seen">
+<tt class="descname">best_seen</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#BayesOpt.best_seen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.BayesOpt.best_seen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.negExpImprove">
+<tt class="descclassname">OcelotInterface.GP.BayesOpt_oldcopy.</tt><tt class="descname">negExpImprove</tt><big>(</big><em>x_new</em>, <em>model</em>, <em>y_best</em>, <em>xi</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#negExpImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.negExpImprove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.BayesOpt_oldcopy.negProbImprove">
+<tt class="descclassname">OcelotInterface.GP.BayesOpt_oldcopy.</tt><tt class="descname">negProbImprove</tt><big>(</big><em>x_new</em>, <em>model</em>, <em>y_best</em>, <em>xi</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOpt_oldcopy.html#negProbImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOpt_oldcopy.negProbImprove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.BayesOptimization">
+<span id="bayesoptimization-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">BayesOptimization</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.BayesOptimization" title="Permalink to this headline">¶</a></h2>
+<p>Contains the Bayes optimization class.
+Initialization parameters:</p>
+<blockquote>
+<div><p>model: an object with methods &#8216;predict&#8217;, &#8216;fit&#8217;, and &#8216;update&#8217;
+interface: an object which supplies the state of the system and</p>
+<blockquote>
+<div><p>allows for changing the system&#8217;s x-value.
+Should have methods &#8216;(x,y) = intfc.getState()&#8217; and &#8216;intfc.setX(x_new)&#8217;.
+Note that this interface system is rough, and used for testing and</p>
+<blockquote>
+<div>as a placeholder for the machine interface.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>acq_func: specifies how the optimizer should choose its next point.</dt>
+<dd><p class="first">&#8216;EI&#8217;: uses expected improvement. The interface should supply y-values.
+&#8216;testEI&#8217;: uses EI over a finite set of points. This set must be</p>
+<blockquote class="last">
+<div>provided as alt_param, and the interface need not supply
+meaningful y-values.</div></blockquote>
+</dd>
+</dl>
+<p>xi: exploration parameter suggested in some Bayesian opt. literature
+alt_param: currently only used when acq_func==&#8217;testEI&#8217;
+m: the maximum size of model; can be ignored unless passing an untrained</p>
+<blockquote>
+<div>SPGP or other model which doesn&#8217;t already know its own size</div></blockquote>
+<dl class="docutils">
+<dt>bounds: a tuple of (min,max) tuples specifying search bounds for each</dt>
+<dd>input dimension. Generally leads to better performance.
+Has a different interpretation when iter_bounds is True.</dd>
+<dt>iter_bounds: if True, bounds the distance that can be moved in a single </dt>
+<dd>iteration in terms of the length scale in each dimension. Uses the
+bounds variable as a multiple of the length scales, so bounds==2
+with iter_bounds==True limits movement per iteration to two length
+scales in each dimension. Generally a good idea for safety, etc.</dd>
+<dt>prior_data: input data to train the model on initially. For convenience,</dt>
+<dd><p class="first">since the model can be trained externally as well.
+Assumed to be a pandas DataFrame of shape (n, dim+1) where the last</p>
+<blockquote class="last">
+<div>column contains y-values.</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Methods:</dt>
+<dd><dl class="first last docutils">
+<dt>acquire(): Returns the point that maximizes the acquisition function.</dt>
+<dd><p class="first">For &#8216;testEI&#8217;, returns the index of the point instead.
+For normal acquisition, currently uses the bounded L-BFGS optimizer.</p>
+<blockquote class="last">
+<div>Haven&#8217;t tested alternatives much.</div></blockquote>
+</dd>
+<dt>best_seen(): Uses the model to make predictions at every observed point,</dt>
+<dd>returning the best-performing (x,y) pair. This is more robust to noise
+than returning the best observation, but could be replaced by other,
+faster methods.</dd>
+<dt>OptIter(): The main method for Bayesian optimization. Maximizes the</dt>
+<dd>acquisition function, then uses the interface to test this point and
+update the model.</dd>
+</dl>
+</dd>
+</dl>
+<dl class="class">
+<dt id="OcelotInterface.GP.BayesOptimization.BayesOpt">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.BayesOptimization.</tt><tt class="descname">BayesOpt</tt><big>(</big><em>model</em>, <em>interface</em>, <em>acq_func='EI'</em>, <em>xi=0.0</em>, <em>alt_param=-1</em>, <em>m=200</em>, <em>bounds=None</em>, <em>iter_bound=False</em>, <em>prior_data=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#BayesOpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.BayesOpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOptimization.BayesOpt.OptIter">
+<tt class="descname">OptIter</tt><big>(</big><em>pause=0</em>, <em>alpha=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#BayesOpt.OptIter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.BayesOpt.OptIter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Runs the optimizer for one iteration, selecting a new point,</dt>
+<dd>setting the new location, and updating the model.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOptimization.BayesOpt.acquire">
+<tt class="descname">acquire</tt><big>(</big><em>alpha=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#BayesOpt.acquire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.BayesOpt.acquire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the next point for the optimizer to try by maximizing
+the acquisition function. If movement per iteration is bounded,
+starts search at current position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOptimization.BayesOpt.best_seen">
+<tt class="descname">best_seen</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#BayesOpt.best_seen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.BayesOpt.best_seen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the observed points to see which is predicted to be best.
+Probably safer than just returning the maximum observed, since the
+model has noise. It takes longer this way, though; you could
+instead take the model&#8217;s prediction at the x-value that has
+done best if this needs to be faster.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.BayesOptimization.BayesOpt.terminate">
+<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#BayesOpt.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.BayesOpt.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the position back to the location that seems best in hindsight.
+It&#8217;s a good idea to run this at the end of the optimization, since
+Bayesian optimization tries to explore and might not always end in
+a good place.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.BayesOptimization.negExpImprove">
+<tt class="descclassname">OcelotInterface.GP.BayesOptimization.</tt><tt class="descname">negExpImprove</tt><big>(</big><em>x_new</em>, <em>model</em>, <em>y_best</em>, <em>xi</em>, <em>alpha=1.0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#negExpImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.negExpImprove" title="Permalink to this definition">¶</a></dt>
+<dd><p>The common acquisition function, expected improvement. Returns the
+negative for the minimizer (so that EI is maximized). Alpha attempts
+to control the ratio of exploration to exploitation, but seems to not
+work well in practice. The terminate() method is a better choice.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.BayesOptimization.negProbImprove">
+<tt class="descclassname">OcelotInterface.GP.BayesOptimization.</tt><tt class="descname">negProbImprove</tt><big>(</big><em>x_new</em>, <em>model</em>, <em>y_best</em>, <em>xi</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#negProbImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.negProbImprove" title="Permalink to this definition">¶</a></dt>
+<dd><p>The probability of improvement acquisition function. Untested.
+Performs worse than EI according to the literature.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.BayesOptimization.negUCB">
+<tt class="descclassname">OcelotInterface.GP.BayesOptimization.</tt><tt class="descname">negUCB</tt><big>(</big><em>x_new</em>, <em>model</em>, <em>mult</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/BayesOptimization.html#negUCB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.BayesOptimization.negUCB" title="Permalink to this definition">¶</a></dt>
+<dd><p>The upper confidence bound acquisition function. Currently only partially
+implemented. The mult parameter specifies how wide the confidence bound
+should be, and there currently is no way to compute this parameter. This
+acquisition function shouldn&#8217;t be used until there is a proper mult.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.GP">
+<span id="gp-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">GP</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.GP" title="Permalink to this headline">¶</a></h2>
+<p>Created on Wed Nov 18 19:46:52 2015</p>
+<p>&#64;author: Mitch</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.GP.SPGP_predict">
+<tt class="descclassname">OcelotInterface.GP.GP.</tt><tt class="descname">SPGP_predict</tt><big>(</big><em>X</em>, <em>y</em>, <em>xb</em>, <em>xt</em>, <em>hyperparams</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP.html#SPGP_predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP.SPGP_predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP.SPGP_train">
+<tt class="descclassname">OcelotInterface.GP.GP.</tt><tt class="descname">SPGP_train</tt><big>(</big><em>X</em>, <em>Y</em>, <em>num_pseudo_inputs</em>, <em>num_starts=1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP.html#SPGP_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP.SPGP_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains a sparse Gaussian process on the input data.
+X &#8211; DataFrame with training data (n x dim)  
+Y &#8211; Labels for training data (n x 1)
+num_pseudo_inputs &#8211; number of points used to fill sparse model
+num_starts &#8211; number of attempts at minimization. Increases runtime linearly.</p>
+<p>Returns:
+xb &#8211; pseudo-inputs as ndarray (m x dim)
+hyperparams &#8211; tuple containing GP parameters</p>
+<p>Translated to python from Edward Snelson&#8217;s matlab code by Mitchell McIntire.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.GP_utils">
+<span id="gp-utils-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">GP_utils</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.GP_utils" title="Permalink to this headline">¶</a></h2>
+<p>Created on Tue Dec  1 15:46:42 2015</p>
+<p>&#64;author: Mitch</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.RBF_kernel">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">RBF_kernel</tt><big>(</big><em>x1</em>, <em>x2</em>, <em>hyp_ARD</em>, <em>hyp_coeff</em>, <em>is_self=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#RBF_kernel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.RBF_kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.SPGP_likelihood">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">SPGP_likelihood</tt><big>(</big><em>params</em>, <em>y</em>, <em>x</em>, <em>m</em>, <em>compute_deriv=True</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#SPGP_likelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.SPGP_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.chol_invert">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">chol_invert</tt><big>(</big><em>factor</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#chol_invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.chol_invert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.closestPoint">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">closestPoint</tt><big>(</big><em>x</em>, <em>X</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#closestPoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.closestPoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.pack_hyps">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">pack_hyps</tt><big>(</big><em>xb</em>, <em>hyp_ARD</em>, <em>hyp_coeff</em>, <em>hyp_noise</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#pack_hyps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.pack_hyps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.pair_dist">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">pair_dist</tt><big>(</big><em>x1</em>, <em>x2</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#pair_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.pair_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.r2">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">r2</tt><big>(</big><em>y</em>, <em>ytrue</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#r2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.r2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GP_utils.unpack_hyps">
+<tt class="descclassname">OcelotInterface.GP.GP_utils.</tt><tt class="descname">unpack_hyps</tt><big>(</big><em>vec</em>, <em>m</em>, <em>dim</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GP_utils.html#unpack_hyps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GP_utils.unpack_hyps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.GPtools">
+<span id="gptools-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">GPtools</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.GPtools" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Jan 25 21:04:59 2016</p>
+<p>&#64;author: Mitch</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.BVplot">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">BVplot</tt><big>(</big><em>GP</em>, <em>f</em>, <em>xmin=-2.5</em>, <em>xmax=2.5</em>, <em>fname=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#BVplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.BVplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.GPheatmap">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">GPheatmap</tt><big>(</big><em>model</em>, <em>base</em>, <em>dim1</em>, <em>dim2</em>, <em>range1</em>, <em>range2</em>, <em>size=50</em>, <em>type='pred'</em>, <em>ax=None</em>, <em>y_best=None</em>, <em>fname=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#GPheatmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.GPheatmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.errplot">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">errplot</tt><big>(</big><em>y1</em>, <em>y2</em>, <em>fname=None</em>, <em>xlabel='Iteration number'</em>, <em>ylabel=''</em>, <em>mean=True</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#errplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.errplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.plotGPmodel">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">plotGPmodel</tt><big>(</big><em>GP</em>, <em>xmin=-15</em>, <em>xmax=15</em>, <em>cov=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#plotGPmodel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.plotGPmodel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.regrets">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">regrets</tt><big>(</big><em>y1</em>, <em>y2</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#regrets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.regrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.rregrets">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">rregrets</tt><big>(</big><em>r1</em>, <em>r2</em>, <em>orig=True</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#rregrets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.rregrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.scat">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">scat</tt><big>(</big><em>y1</em>, <em>y2</em>, <em>fname=None</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#scat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.scat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.GPtools.vify">
+<tt class="descclassname">OcelotInterface.GP.GPtools.</tt><tt class="descname">vify</tt><big>(</big><em>x</em>, <em>i</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/GPtools.html#vify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.GPtools.vify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.OnlineGP">
+<span id="onlinegp-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">OnlineGP</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.OnlineGP" title="Permalink to this headline">¶</a></h2>
+<p>Designed by Lehel Csato for NETLAB, rewritten
+for Python in 2016 by Mitchell McIntire</p>
+<p>The Online Gaussian process class.</p>
+<dl class="docutils">
+<dt>Initialization parameters:</dt>
+<dd><p class="first">dim: the dimension of input data
+hyperparams: GP model hyperparameters. For RBF_ARD, a 3-tuple with entries:</p>
+<blockquote>
+<div>hyp_ARD: size (1 x dim) vector of ARD parameters
+hyp_coeff: the coefficient parameter of the RBF kernel
+hyp_noise: the model noise hyperparameter
+Note &#8211; different hyperparams needed for different covariance functions</div></blockquote>
+<dl class="docutils">
+<dt>covar: the covariance function to be used, currently only &#8216;RBF_ARD&#8217;</dt>
+<dd><dl class="first last docutils">
+<dt>RBF_ARD: the radial basis function with ARD, i.e. a squared exponential</dt>
+<dd>with diagonal scaling matrix specified by hyp_ARD</dd>
+</dl>
+</dd>
+<dt>maxBV: the number of basis vectors to represent the model. Increasing this</dt>
+<dd>beyond 100 or so will increase runtime substantially</dd>
+</dl>
+<p>prmean: either None, a number, or a callable function that gives the prior mean
+prmeanp: parameters to the prmean function
+proj: I&#8217;m not sure exactly. Setting this to false gives a different method</p>
+<blockquote>
+<div>of computing updates, but I haven&#8217;t tested it or figured out what the
+difference is.</div></blockquote>
+<dl class="last docutils">
+<dt>weighted: whether or not to use weighted difference computations. Slower but may</dt>
+<dd>yield improved performance. Still testing.</dd>
+<dt>thresh: some low float value to specify how different a point has to be to</dt>
+<dd>add it to the model. Keeps matrices well-conditioned.</dd>
+</dl>
+</dd>
+<dt>Methods:</dt>
+<dd><p class="first">update(x_new, y_new): Runs an online GP iteration incorporating the new data.
+fit(X, Y): Calls update on multiple points for convenience. X is assumed to</p>
+<blockquote>
+<div>be a pandas DataFrame.</div></blockquote>
+<p>predict(x): Computes GP prediction(s) for input point(s).
+scoreBVs(): Returns a vector with the (either weighted or unweighted) KL</p>
+<blockquote>
+<div>divergence-cost of removing each BV.</div></blockquote>
+<dl class="last docutils">
+<dt>deleteBV(index): Removes the selected BV from the GP and updates to minimize</dt>
+<dd>the (either weighted or unweighted) KL divergence-cost of the removal</dd>
+</dl>
+</dd>
+</dl>
+<dl class="class">
+<dt id="OcelotInterface.GP.OnlineGP.OGP">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.OnlineGP.</tt><tt class="descname">OGP</tt><big>(</big><em>dim</em>, <em>hyperparams</em>, <em>covar='RBF_ARD'</em>, <em>maxBV=200</em>, <em>prmean=None</em>, <em>prmeanp=None</em>, <em>proj=True</em>, <em>weighted=False</em>, <em>thresh=1e-06</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.computeCov">
+<tt class="descname">computeCov</tt><big>(</big><em>x1</em>, <em>x2</em>, <em>is_self=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.computeCov"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.computeCov" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.computeWeightedDiv">
+<tt class="descname">computeWeightedDiv</tt><big>(</big><em>hatalpha</em>, <em>hatC</em>, <em>removeInd</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.computeWeightedDiv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.computeWeightedDiv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.deleteBV">
+<tt class="descname">deleteBV</tt><big>(</big><em>removeInd</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.deleteBV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.deleteBV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.fit">
+<tt class="descname">fit</tt><big>(</big><em>X</em>, <em>Y</em>, <em>m=0</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.getUpdatedParams">
+<tt class="descname">getUpdatedParams</tt><big>(</big><em>removeInd</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.getUpdatedParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.getUpdatedParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.predict">
+<tt class="descname">predict</tt><big>(</big><em>x_in</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.priorMean">
+<tt class="descname">priorMean</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.priorMean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.priorMean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.scoreBVs">
+<tt class="descname">scoreBVs</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.scoreBVs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.scoreBVs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.OnlineGP.OGP.update">
+<tt class="descname">update</tt><big>(</big><em>x_new</em>, <em>y_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#OGP.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.OGP.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.OnlineGP.extendMatrix">
+<tt class="descclassname">OcelotInterface.GP.OnlineGP.</tt><tt class="descname">extendMatrix</tt><big>(</big><em>M</em>, <em>ind=-1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#extendMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.extendMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.OnlineGP.extendVector">
+<tt class="descclassname">OcelotInterface.GP.OnlineGP.</tt><tt class="descname">extendVector</tt><big>(</big><em>v</em>, <em>val=0</em>, <em>ind=-1</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#extendVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.extendVector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.OnlineGP.logLikelihood">
+<tt class="descclassname">OcelotInterface.GP.OnlineGP.</tt><tt class="descname">logLikelihood</tt><big>(</big><em>noise</em>, <em>y</em>, <em>mu</em>, <em>var</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#logLikelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.logLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.OnlineGP.stabilizeMatrix">
+<tt class="descclassname">OcelotInterface.GP.OnlineGP.</tt><tt class="descname">stabilizeMatrix</tt><big>(</big><em>M</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/OnlineGP.html#stabilizeMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.OnlineGP.stabilizeMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.SPGPmodel">
+<span id="spgpmodel-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">SPGPmodel</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.SPGPmodel" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Dec  7 21:39:18 2015</p>
+<p>&#64;author: Mitch</p>
+<dl class="class">
+<dt id="OcelotInterface.GP.SPGPmodel.SPGP">
+<em class="property">class </em><tt class="descclassname">OcelotInterface.GP.SPGPmodel.</tt><tt class="descname">SPGP</tt><a class="reference internal" href="_modules/OcelotInterface/GP/SPGPmodel.html#SPGP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.SPGPmodel.SPGP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="OcelotInterface.GP.SPGPmodel.SPGP.fit">
+<tt class="descname">fit</tt><big>(</big><em>X</em>, <em>Y</em>, <em>m</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/SPGPmodel.html#SPGP.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.SPGPmodel.SPGP.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.SPGPmodel.SPGP.predict">
+<tt class="descname">predict</tt><big>(</big><em>X</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/SPGPmodel.html#SPGP.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.SPGPmodel.SPGP.predict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="OcelotInterface.GP.SPGPmodel.SPGP.update">
+<tt class="descname">update</tt><big>(</big><em>x_new</em>, <em>y_new</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/SPGPmodel.html#SPGP.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.SPGPmodel.SPGP.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="discrete-test-script-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">discrete_test_script</span></tt> Module<a class="headerlink" href="#discrete-test-script-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-OcelotInterface.GP.example_script">
+<span id="example-script-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">example_script</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.example_script" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Jan 25 16:19:03 2016</p>
+<p>&#64;author: Mitch</p>
+<p>Script to show optimization results on toy problem.</p>
+<p>Currently more sensitive to initial conditions than expected. Also currently
+uses hyperparameters that are clearly suboptimal - results are inconsistent
+based on initial sampling and whether bounds are given for acquisition.</p>
+<p>Probably could find a better toy problem that is nonnegative, which
+might imporove consistency.</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.example_script.rand">
+<tt class="descclassname">OcelotInterface.GP.example_script.</tt><tt class="descname">rand</tt><big>(</big><em>d0</em>, <em>d1</em>, <em>...</em>, <em>dn</em><big>)</big><a class="headerlink" href="#OcelotInterface.GP.example_script.rand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Random values in a given shape.</p>
+<p>Create an array of the given shape and propagate it with
+random samples from a uniform distribution
+over <tt class="docutils literal"><span class="pre">[0,</span> <span class="pre">1)</span></tt>.</p>
+<dl class="docutils">
+<dt>d0, d1, ..., dn <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd>The dimensions of the returned array, should all be positive.
+If no argument is given a single Python float is returned.</dd>
+</dl>
+<dl class="docutils">
+<dt>out <span class="classifier-delimiter">:</span> <span class="classifier">ndarray, shape <tt class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></tt></span></dt>
+<dd>Random values.</dd>
+</dl>
+<p>random</p>
+<p>This is a convenience function. If you want an interface that
+takes a shape-tuple as the first argument, refer to
+np.random.random_sample .</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">array([[ 0.14022471,  0.96360618],  #random</span>
+<span class="go">       [ 0.37601032,  0.25528411],  #random</span>
+<span class="go">       [ 0.49313049,  0.94909878]]) #random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.lcls_opt_script">
+<span id="lcls-opt-script-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lcls_opt_script</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.lcls_opt_script" title="Permalink to this headline">¶</a></h2>
+<p>Created on Wed Jan 27 21:19:02 2016</p>
+<p>&#64;author: Mitch</p>
+<p>Imports LCLS data and does trial optimization with unweighted and weighted
+online GPs.</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.lcls_opt_script.randn">
+<tt class="descclassname">OcelotInterface.GP.lcls_opt_script.</tt><tt class="descname">randn</tt><big>(</big><em>d0</em>, <em>d1</em>, <em>...</em>, <em>dn</em><big>)</big><a class="headerlink" href="#OcelotInterface.GP.lcls_opt_script.randn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a sample (or samples) from the &#8220;standard normal&#8221; distribution.</p>
+<p>If positive, int_like or int-convertible arguments are provided,
+<cite>randn</cite> generates an array of shape <tt class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></tt>, filled
+with random floats sampled from a univariate &#8220;normal&#8221; (Gaussian)
+distribution of mean 0 and variance 1 (if any of the <img class="math" src="_images/math/f1544d77330dc5a289ad6a42beeb236b8dd70a9a.png" alt="d_i"/> are
+floats, they are first converted to integers by truncation). A single
+float randomly sampled from the distribution is returned if no
+argument is provided.</p>
+<p>This is a convenience function.  If you want an interface that takes a
+tuple as the first argument, use <cite>numpy.random.standard_normal</cite> instead.</p>
+<dl class="docutils">
+<dt>d0, d1, ..., dn <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd>The dimensions of the returned array, should be all positive.
+If no argument is given a single Python float is returned.</dd>
+</dl>
+<dl class="docutils">
+<dt>Z <span class="classifier-delimiter">:</span> <span class="classifier">ndarray or float</span></dt>
+<dd>A <tt class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></tt>-shaped array of floating-point samples from
+the standard normal distribution, or a single such float if
+no parameters were supplied.</dd>
+</dl>
+<p>random.standard_normal : Similar, but takes a tuple as its argument.</p>
+<p>For random samples from <img class="math" src="_images/math/adbb4ce441cd7277f61353fde37bbd8150e05a55.png" alt="N(\mu, \sigma^2)"/>, use:</p>
+<p><tt class="docutils literal"><span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">np.random.randn(...)</span> <span class="pre">+</span> <span class="pre">mu</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">()</span>
+<span class="go">2.1923875335537315 #random</span>
+</pre></div>
+</div>
+<p>Two-by-four array of samples from N(3, 6.25):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span>
+<span class="go">array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],  #random</span>
+<span class="go">       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]]) #random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="OcelotInterface.GP.lcls_opt_script.run">
+<tt class="descclassname">OcelotInterface.GP.lcls_opt_script.</tt><tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/lcls_opt_script.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.lcls_opt_script.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-OcelotInterface.GP.minimize">
+<span id="minimize-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">minimize</span></tt> Module<a class="headerlink" href="#module-OcelotInterface.GP.minimize" title="Permalink to this headline">¶</a></h2>
+<p>minimize.py</p>
+<p>This module contains a function &#8216;minimize&#8217; that performs unconstrained
+gradient based optimization using nonlinear conjugate gradients.</p>
+<p>The function is a straightforward Python-translation of Carl Rasmussen&#8217;s
+Matlab-function minimize.m</p>
+<dl class="function">
+<dt id="OcelotInterface.GP.minimize.minimize">
+<tt class="descclassname">OcelotInterface.GP.minimize.</tt><tt class="descname">minimize</tt><big>(</big><em>X</em>, <em>f</em>, <em>args</em>, <em>maxnumlinesearch=None</em>, <em>maxnumfuneval=None</em>, <em>red=1.0</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/OcelotInterface/GP/minimize.html#minimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#OcelotInterface.GP.minimize.minimize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GP Package</a><ul>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.BasicInterfaces"><tt class="docutils literal"><span class="pre">BasicInterfaces</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.BayesOpt_oldcopy"><tt class="docutils literal"><span class="pre">BayesOpt_oldcopy</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.BayesOptimization"><tt class="docutils literal"><span class="pre">BayesOptimization</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.GP"><tt class="docutils literal"><span class="pre">GP</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.GP_utils"><tt class="docutils literal"><span class="pre">GP_utils</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.GPtools"><tt class="docutils literal"><span class="pre">GPtools</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.OnlineGP"><tt class="docutils literal"><span class="pre">OnlineGP</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.SPGPmodel"><tt class="docutils literal"><span class="pre">SPGPmodel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#discrete-test-script-module"><tt class="docutils literal"><span class="pre">discrete_test_script</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.example_script"><tt class="docutils literal"><span class="pre">example_script</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.lcls_opt_script"><tt class="docutils literal"><span class="pre">lcls_opt_script</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-OcelotInterface.GP.minimize"><tt class="docutils literal"><span class="pre">minimize</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/OcelotInterface.GP.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OcelotInterface 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

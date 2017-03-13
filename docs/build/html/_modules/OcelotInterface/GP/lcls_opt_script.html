@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.GP.lcls_opt_script &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.GP.lcls_opt_script</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Jan 27 21:19:02 2016</span>
+
+<span class="sd">@author: Mitch</span>
+
+<span class="sd">Imports LCLS data and does trial optimization with unweighted and weighted</span>
+<span class="sd">online GPs. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">GPtools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">OnlineGP</span>
+<span class="kn">import</span> <span class="nn">SPGPmodel</span>
+<span class="kn">from</span> <span class="nn">BasicInterfaces</span> <span class="kn">import</span> <span class="n">TestInterface</span><span class="p">,</span> <span class="n">GPint</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">randn</span>
+<span class="kn">import</span> <span class="nn">BayesOptimization</span> <span class="kn">as</span> <span class="nn">BOpt</span>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../OcelotInterface.GP.html#OcelotInterface.GP.lcls_opt_script.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># load data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">&#39;../data.csv&#39;</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">data</span><span class="p">[(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">6.0</span><span class="p">)]</span>
+        <span class="n">ctrl</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&#39;BCTRL&#39;</span><span class="p">]</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">dt</span><span class="p">[</span><span class="n">ctrl</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c"># clear unneeded stuff from memory</span>
+        <span class="k">del</span> <span class="n">data</span>
+
+        <span class="c"># set up data from a given event</span>
+        <span class="n">event_energy</span> <span class="o">=</span> <span class="mf">11.45</span>
+        <span class="n">Xsm</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">event_energy</span><span class="p">,:]</span>
+        <span class="n">Xsm</span> <span class="o">=</span> <span class="n">Xsm</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">2050</span><span class="p">,:]</span>
+        <span class="n">Ysm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">event_energy</span><span class="p">,</span><span class="n">dt</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="n">Ysm</span> <span class="o">=</span> <span class="n">Ysm</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">2050</span><span class="p">]</span>
+        <span class="n">XYsm</span> <span class="o">=</span> <span class="n">Xsm</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">XYsm</span><span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ysm</span>
+        <span class="n">mins</span> <span class="o">=</span> <span class="n">Xsm</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">maxs</span> <span class="o">=</span> <span class="n">Xsm</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c"># bound the acquisition: leads to better performance and lessens</span>
+        <span class="c">#   the improvements from weighting</span>
+        <span class="c">#bnds = tuple([(mins[i],maxs[i]) for i in range(len(mins))])</span>
+        <span class="n">bnds</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># build a sparse GP and optimize its hyperparameters to use for online GP</span>
+        <span class="n">hprior</span> <span class="o">=</span> <span class="n">SPGPmodel</span><span class="o">.</span><span class="n">SPGP</span><span class="p">()</span>
+        <span class="n">hprior</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Xsm</span><span class="p">,</span> <span class="n">Ysm</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="n">data_hyps</span> <span class="o">=</span> <span class="n">hprior</span><span class="o">.</span><span class="n">hyps</span>
+
+        <span class="c"># train truth model, the high-res GP that stands in for a real-world machine</span>
+        <span class="n">prior</span> <span class="o">=</span> <span class="n">OnlineGP</span><span class="o">.</span><span class="n">OGP</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="n">data_hyps</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">maxBV</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">prmean</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">prior</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Xsm</span><span class="p">,</span><span class="n">Ysm</span><span class="p">)</span>
+
+        <span class="c"># set up run parameters</span>
+        <span class="n">runs</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="n">num_iter</span> <span class="o">=</span> <span class="mi">60</span>
+        <span class="n">numBV</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">num_train</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="c"># initialize for data collection</span>
+        <span class="n">model1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">model2</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">opt1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">opt2</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">res1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">res2</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">preds1</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+        <span class="n">preds2</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">)</span>
+
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">runs</span><span class="p">):</span>
+                <span class="n">model1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">OnlineGP</span><span class="o">.</span><span class="n">OGP</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span><span class="n">data_hyps</span><span class="p">,</span><span class="n">weighted</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">maxBV</span><span class="o">=</span><span class="n">numBV</span><span class="p">,</span> <span class="n">prmean</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="c"># prmean=prior_func, prmeanp=(mod,poly))</span>
+                <span class="n">model2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">OnlineGP</span><span class="o">.</span><span class="n">OGP</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span><span class="n">data_hyps</span><span class="p">,</span> <span class="n">weighted</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">maxBV</span><span class="o">=</span><span class="n">numBV</span><span class="p">,</span> <span class="n">prmean</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="c"># mock machine interfaces using the big GP to supply y-values</span>
+                <span class="n">intfc1</span> <span class="o">=</span> <span class="n">GPint</span><span class="p">(</span><span class="n">vify</span><span class="p">(</span><span class="n">Xsm</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">prior</span><span class="p">)</span>
+                <span class="n">intfc2</span> <span class="o">=</span> <span class="n">GPint</span><span class="p">(</span><span class="n">vify</span><span class="p">(</span><span class="n">Xsm</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="n">prior</span><span class="p">)</span>
+
+                <span class="c"># need initial training or complex prior mean function to guide optimization</span>
+                <span class="n">train</span> <span class="o">=</span> <span class="n">XYsm</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1000</span><span class="p">:]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">num_train</span><span class="p">)</span>
+                <span class="n">train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">noise</span><span class="o">*</span><span class="n">randn</span><span class="p">(</span><span class="n">num_train</span><span class="p">)</span>
+                <span class="n">model1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">model2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+                <span class="c"># initialize optimizers</span>
+                <span class="n">opt1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">BOpt</span><span class="o">.</span><span class="n">BayesOpt</span><span class="p">(</span><span class="n">model1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">intfc1</span><span class="p">,</span> <span class="n">acq_func</span><span class="o">=</span><span class="s">&#39;EI&#39;</span><span class="p">,</span> <span class="n">xi</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">)</span><span class="c">#, alt_param=XYsm)</span>
+                <span class="n">opt2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">BOpt</span><span class="o">.</span><span class="n">BayesOpt</span><span class="p">(</span><span class="n">model2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">intfc2</span><span class="p">,</span> <span class="n">acq_func</span><span class="o">=</span><span class="s">&#39;EI&#39;</span><span class="p">,</span> <span class="n">xi</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bnds</span><span class="p">)</span><span class="c">#, alt_param=XYsm)</span>
+
+        <span class="c"># do optimization</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iter</span><span class="p">):</span>
+                <span class="n">opt1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">OptIter</span><span class="p">()</span>
+                <span class="n">opt2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">OptIter</span><span class="p">()</span>
+        
+        <span class="c"># collect data</span>
+        <span class="n">res1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">opt1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Y_obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],(</span><span class="n">num_iter</span><span class="p">))</span>
+        <span class="n">res2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">opt2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">Y_obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],(</span><span class="n">num_iter</span><span class="p">))</span>
+        <span class="n">preds1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Xsm</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">preds2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">opt2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Xsm</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># plot results</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+
+        <span class="n">errplot</span><span class="p">(</span><span class="n">res1</span><span class="p">,</span><span class="n">res2</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

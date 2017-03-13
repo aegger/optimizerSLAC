@@ -1,0 +1,1134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>OcelotInterface.OcelotInterface &mdash; OcelotInterface 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="OcelotInterface 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for OcelotInterface.OcelotInterface</h1><div class="highlight"><pre>
+<span class="c">#!/usr/local/lcls/package/python/current/bin/python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Ocelot GUI, interface for running and testing accelerator optimization methods</span>
+
+<span class="sd">This file primarily contains the code for the UI and GUI</span>
+<span class="sd">The scanner classes are contained in an external file, scannerThreads.py</span>
+<span class="sd">The resetpanel widget is also contained in a separate module, resetpanel</span>
+
+<span class="sd">Tyler Cope, 2016</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c">#QT imports</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QFrame</span><span class="p">,</span> <span class="n">QGraphicsWidget</span><span class="p">,</span> <span class="n">QPixmap</span><span class="p">,</span> <span class="n">QMessageBox</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">QTimer</span><span class="p">,</span> <span class="n">QObject</span>
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">Qt</span>
+
+<span class="c">#normal imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">epics</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pyqtgraph</span> <span class="kn">as</span> <span class="nn">pg</span>
+
+<span class="c">#logbook imports</span>
+<span class="kn">from</span> <span class="nn">re</span> <span class="kn">import</span> <span class="n">sub</span>
+<span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">ElementTree</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">system</span>
+<span class="kn">import</span> <span class="nn">Image</span>
+
+<span class="c">#GUI layout file</span>
+<span class="kn">from</span> <span class="nn">UIOcelotInterface</span> <span class="kn">import</span> <span class="n">Ui_Form</span>
+
+<span class="c">#slac python toolbox imports</span>
+<span class="kn">import</span> <span class="nn">matlog</span>
+
+<span class="c">#local imports</span>
+<span class="kn">import</span> <span class="nn">scannerThreads</span>
+<span class="kn">import</span> <span class="nn">epicsGet</span>
+<span class="kn">import</span> <span class="nn">taperThread</span>
+
+<div class="viewcode-block" id="OcelotInterfaceWindow"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow">[docs]</a><span class="k">class</span> <span class="nc">OcelotInterfaceWindow</span><span class="p">(</span><span class="n">QFrame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main class for the GUI application &quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Initialize the GUI and QT UI aspects of the application.</span>
+<span class="sd">                </span>
+<span class="sd">                Create the epicsGet class, to try and get around network errors.</span>
+<span class="sd">                Initialize the scan parameters.</span>
+<span class="sd">                Connect start and logbook buttons on the scan panel.</span>
+<span class="sd">                Initialize the plotting.</span>
+<span class="sd">                Make the timer object that updates GUI on clock cycle durring a scan.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+		<span class="c"># initialize</span>
+		<span class="n">QFrame</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">Ui_Form</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="c">#init getter class to combat pyepics errors</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span> <span class="o">=</span> <span class="n">epicsGet</span><span class="o">.</span><span class="n">epicsGet</span><span class="p">()</span>
+
+                <span class="c">#method to get defaults for all the scan parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setScanParameters</span><span class="p">()</span>
+                
+                <span class="c">#scan panel button connections</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runScan</span><span class="p">)</span>
+		<span class="c">#self.ui.pushButton.clicked.connect(self.runScript)</span>
+
+                <span class="c">#logbooking</span>
+		<span class="c">#self.ui.pushButton_2.clicked.connect(lambda:self.logbook())</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_2</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">logTextVerbose</span><span class="p">())</span>
+
+                <span class="c">#launch heatmap button</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_3</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">launchHeatMap</span><span class="p">)</span>
+
+                <span class="c">#help and documentation launch button</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_5</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;firefox file:///usr/local/lcls/tools/python/toolbox/OcelotInterface/docs/build/html/index.html&quot;</span><span class="p">))</span>
+
+                <span class="c">#ocelot edm panel for development</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_4</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;edm -x /home/physics/tcope/edm/ocelot_dev.edl &amp;&quot;</span><span class="p">))</span>
+
+                <span class="c">#Save path for data, default will put the data in the current matlab data directory</span>
+                <span class="c">#See data logging module &#39;matlog&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_path</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+
+                <span class="c">#init plots </span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addPlots</span><span class="p">()</span>
+                
+                <span class="c">#object funciton selectinator (gdet)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setObFunc</span><span class="p">()</span>
+
+		<span class="c">#load in the dark theme style sheet</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loadStyleSheet</span><span class="p">()</span>
+
+                <span class="c">#timer for plots, starts when scan starts</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">multiPvTimer</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QTimer</span><span class="p">()</span>
+    		<span class="bp">self</span><span class="o">.</span><span class="n">multiPvTimer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPlotData</span><span class="p">)</span>
+
+
+                <span class="n">taperThread</span><span class="o">.</span><span class="n">Taper</span><span class="p">(</span><span class="n">initPVs</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span> <span class="c">#update taper PVs with initial taper parameters</span>
+                
+                        
+<div class="viewcode-block" id="OcelotInterfaceWindow.loadStyleSheet"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.loadStyleSheet">[docs]</a>        <span class="k">def</span> <span class="nf">loadStyleSheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Sets the dark GUI theme from a css file.&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cssfile</span> <span class="o">=</span> <span class="s">&quot;style.css&quot;</span>
+			<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cssfile</span><span class="p">,</span><span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+		<span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+			<span class="k">print</span> <span class="s">&#39;No style sheet found!&#39;</span>	</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setListener"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setListener">[docs]</a>        <span class="k">def</span> <span class="nf">setListener</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to set epics flag inducating that this GUI is running.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        state (bool): Bools to set the PV stats flag true or false </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#watcher cud flag</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="s">&quot;PHYS:ACR0:OCLT:OPTISRUNNING&quot;</span><span class="p">,</span><span class="n">state</span><span class="p">)</span> 
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;No watcher cud PV found!&quot;</span>
+                <span class="c">#listener application flag</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="s">&quot;SIOC:SYS0:ML03:AO702&quot;</span> <span class="p">,</span><span class="n">state</span><span class="p">)</span>       
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;No listener PV found!&quot;</span>
+
+                <span class="c">#sets the hostname env to another watcher cud PV</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">opi</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;HOSTNAME&#39;</span><span class="p">]</span>
+                        <span class="n">epics</span><span class="o">.</span><span class="n">caput</span><span class="p">(</span><span class="s">&quot;SIOC:SYS0:ML00:CA999&quot;</span><span class="p">,</span><span class="n">opi</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;No OPI enviroment variable found&quot;</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.devmode"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.devmode">[docs]</a>        <span class="k">def</span> <span class="nf">devmode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Used to setup a development mode for quick testing.</span>
+
+<span class="sd">                This method contains settings for a dev mode on GUI startup.</span>
+
+<span class="sd">                Uses the following PVs as dev devices:</span>
+<span class="sd">                        SIOC:SYS0:ML00:CALCOUT997</span>
+<span class="sd">                        SIOC:SYS0:ML00:CALCOUT998</span>
+<span class="sd">                        SIOC:SYS0:ML00:CALCOUT999</span>
+<span class="sd">                        SIOC:SYS0:ML00:CALCOUT000</span>
+
+<span class="sd">                Uses the following PV as an objective function:</span>
+<span class="sd">                        SIOC:SYS0:ML00:CALCOUT993</span>
+
+<span class="sd">                Best used with the epics dev control panel fromt he GUIs options panel.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#select GP alg for testing</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> 
+
+                <span class="c">#set dev objective function</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span> <span class="o">=</span> <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT993&quot;</span>
+
+                <span class="c">#faster timing</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="c">#fast trim time</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="c">#fast delay time</span>
+
+                <span class="c">#select normalization for simplex</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">True</span>
+
+                <span class="c">#GP settings</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span> <span class="o">=</span> <span class="s">&quot;parameters/hype3.npy&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span>   <span class="o">=</span> <span class="mi">5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span> <span class="o">=</span> <span class="bp">True</span>
+                
+                <span class="c">#set the save path to tmp instead of the lcls matlab data directory</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_path</span> <span class="o">=</span> <span class="s">&#39;/tmp/&#39;</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.disableStuff"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.disableStuff">[docs]</a>        <span class="k">def</span> <span class="nf">disableStuff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to disable development functionality durring production use.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#optmizer select</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">label_5</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span> <span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="c">#Select Optimizer Algorithm</span>
+
+                <span class="c">#Scipy Normalization</span>
+                <span class="c">#self.ui.checkBox_2.setEnabled(False)#Use normalization File</span>
+                <span class="c">#self.ui.lineEdit_7.setEnabled(False)#Text file name</span>
+
+                <span class="c">#GP Scanner</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">groupBox_2</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="c">#GP Scanner Setup group</span>
+
+                <span class="c">#buttons</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_3</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="c">#GP 2D Heatmap</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton_4</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="c">#Dev Ocelot Panel</span>
+
+                <span class="c">#simplex amp coeff</span>
+                <span class="c">#self.ui.lineEdit_8.setEnabled(False)#Normalization Scaling Coefficient</span>
+                <span class="c">#self.ui.label_11.setEnabled(False)#Normilization Text</span>
+
+
+
+<span class="c">#==============================================================#</span>
+<span class="c"># -------------- Start code for scan options UI -------------- #</span>
+<span class="c">#==============================================================#</span>
+
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setScanParameters"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setScanParameters">[docs]</a>        <span class="k">def</span> <span class="nf">setScanParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initialize default parameters for a scan when the GUI starts up.</span>
+
+<span class="sd">                Creates connection for parameter changes on options panel.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#set number of scan iterations for any scan</span>
+                <span class="c">#could make this an argument from the UI as well</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">iters</span> <span class="o">=</span> <span class="mi">45</span>
+
+                <span class="c">#normalization amp coeff for scipy scanner</span>
+                <span class="c">#multiplicative factor</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_8</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_8</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setNormAmpCoeff</span><span class="p">)</span>
+
+                <span class="c">#set objection method (gdet or some other pv to optimize)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span> <span class="o">=</span> <span class="s">&quot;GDET:FEE1:241:ENRCHSTBR&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setObFunc</span><span class="p">)</span>
+
+                <span class="c">#set bool optinon to use normalization from file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_2</span><span class="o">.</span><span class="n">stateChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setNormParamsBool</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_2</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="c">#set the normalizaiton file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span> <span class="o">=</span> <span class="s">&quot;parameters/hype3.npy&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_7</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_7</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setNormParamsFile</span><span class="p">)</span>
+
+                <span class="c">#set trim delay</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span> <span class="o">=</span> <span class="mf">0.5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_2</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_2</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setTrimDelay</span><span class="p">)</span>
+
+                <span class="c">#set data delay</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span> <span class="o">=</span> <span class="mf">1.5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_3</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_3</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setDataDelay</span><span class="p">)</span>
+
+                <span class="c">#set GP Seed data file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_file</span> <span class="o">=</span> <span class="s">&quot;parameters/simSeed.mat&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_4</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_file</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_4</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setGpSeed</span><span class="p">)</span>
+
+                <span class="c">#set GP Hyperparameters from a file</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span> <span class="o">=</span> <span class="s">&quot;parameters/hype3.npy&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_5</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_5</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setGpHyps</span><span class="p">)</span>
+
+                <span class="c">#set number GP simplex seed Iterations</span>
+                <span class="c">#used in adition to the standard number of iterations defined above</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span> <span class="o">=</span> <span class="mi">5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_6</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_6</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setGpSeedIters</span><span class="p">)</span>
+
+                <span class="c">#set the &quot;use GP Simplex Seed&quot; bool for the GP optimizer class</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox</span><span class="o">.</span><span class="n">stateChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setGpSimplexSeed</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                
+                <span class="c">#set cycle period from sum of trim and data delay</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">label_7</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Cycle Period = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+
+                <span class="c">#initialize algorithm names for UI, add items to combobox</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name1</span> <span class="o">=</span> <span class="s">&quot;Nelder-Mead Simplex&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name2</span> <span class="o">=</span> <span class="s">&quot;Gaussian Process&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name3</span> <span class="o">=</span> <span class="s">&quot;Conjugate Gradient&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name4</span> <span class="o">=</span> <span class="s">&quot;Powell&#39;s Method&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name2</span><span class="p">)</span>
+                <span class="c">#self.ui.comboBox.addItem(self.name3)</span>
+                <span class="c">#self.ui.comboBox.addItem(self.name4)</span>
+
+                <span class="c">#initialize GUI with simplex method</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="s">&quot;Nelder-Mead Simplex&quot;</span>
+
+                <span class="c">#set up taper coef default</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_9</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_9</span><span class="o">.</span><span class="n">returnPressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setTaperCoeff</span><span class="p">)</span>
+                
+                <span class="c">#initialize taper PV names</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taperPVs</span> <span class="o">=</span> <span class="n">taperThread</span><span class="o">.</span><span class="n">Taper</span><span class="p">()</span><span class="o">.</span><span class="n">getPVs</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.scanMethodSelect"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanMethodSelect">[docs]</a>        <span class="k">def</span> <span class="nf">scanMethodSelect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Sets scanner method from options panel combo box selection.</span>
+<span class="sd">                </span>
+<span class="sd">                This method executes from the runScan() method, when the UI &quot;Start Scan&quot; button is pressed.</span>
+
+<span class="sd">                Returns:</span>
+<span class="sd">                         Selected scanner object </span>
+<span class="sd">                         These objects are contrained in the scannerThreads.py file</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+                <span class="c">#simplex Method</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name1</span>
+                        <span class="n">scanner</span> <span class="o">=</span> <span class="n">scannerThreads</span><span class="o">.</span><span class="n">OcelotScanner</span><span class="p">(</span>
+                                        <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                                        <span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">,</span> <span class="c">#normalize toggle</span>
+                                        <span class="n">norm_params_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span><span class="p">,</span> <span class="c">#param filename</span>
+                                        <span class="n">norm_amp_coeff</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">,</span>   <span class="c">#strength scale</span>
+                                        <span class="n">taper_coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span><span class="p">)</span>         <span class="c">#taper strength scale</span>
+
+                <span class="c">#GP Method</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2</span>
+                        <span class="n">scanner</span> <span class="o">=</span> <span class="n">scannerThreads</span><span class="o">.</span><span class="n">GpScanner</span><span class="p">(</span>
+                                        <span class="n">parent</span>           <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                                        <span class="n">seed_file</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_file</span><span class="p">,</span>     <span class="c">#saved .mat file to make GP from file</span>
+                                        <span class="n">hyp_file</span>         <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span><span class="p">,</span>      <span class="c">#hyperparameter data filename</span>
+                                        <span class="n">seedScanBool</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span><span class="p">,</span>  <span class="c">#simplex seed or .mat seed toggle</span>
+                                        <span class="n">seedIters</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span><span class="p">,</span>    <span class="c">#iterations of simplex to seed GP</span>
+                                        <span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">,</span> <span class="c">#normalize toggle for simplex</span>
+                                        <span class="n">norm_params_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span><span class="p">,</span> <span class="c">#filename to use for simplex normalization</span>
+                                        <span class="n">norm_amp_coeff</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">)</span>   <span class="c">#strength scale for simplex normalizaiton</span>
+                        
+                <span class="c"># Conjugate Gradient</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name3</span>
+                        <span class="n">scanner</span> <span class="o">=</span> <span class="n">scannerThreads</span><span class="o">.</span><span class="n">OcelotScanner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s">&#39;cg&#39;</span><span class="p">)</span>
+
+                <span class="c"># Powells Method</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> 
+                        <span class="bp">self</span><span class="o">.</span><span class="n">name_current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name4</span>
+                        <span class="n">scanner</span> <span class="o">=</span> <span class="n">scannerThreads</span><span class="o">.</span><span class="n">OcelotScanner</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s">&#39;powell&#39;</span><span class="p">)</span>
+
+                <span class="k">print</span>
+                <span class="k">print</span> <span class="s">&quot;Selected Scanner Object&quot;</span><span class="p">,</span><span class="n">scanner</span>
+                <span class="k">print</span>
+                <span class="k">return</span> <span class="n">scanner</span>
+        </div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setObFunc"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setObFunc">[docs]</a>        <span class="k">def</span> <span class="nf">setObFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Method to select new objective function PV (GDET).</span>
+<span class="sd">                </span>
+<span class="sd">                Typically the gas detector, but it could be some other calc PV.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                <span class="c">#check for blank string that will break it</span>
+                <span class="k">if</span> <span class="n">text</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&quot;color: red&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="c">#exit</span>
+
+                <span class="n">state</span> <span class="o">=</span> <span class="n">epics</span><span class="o">.</span><span class="n">PV</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">),</span><span class="n">connection_timeout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="k">print</span> <span class="s">&quot;state&quot;</span>
+
+                <span class="k">if</span> <span class="n">state</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span> <span class="o">=</span> <span class="n">text</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&quot;color: rgb(85, 255, 0);&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">plot1</span><span class="o">.</span><span class="n">setLabel</span><span class="p">(</span><span class="s">&#39;left&#39;</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&quot;color: red&quot;</span><span class="p">)</span>
+                        </div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setNormAmpCoeff"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setNormAmpCoeff">[docs]</a>        <span class="k">def</span> <span class="nf">setNormAmpCoeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Changes the scaling parameter for the simplex/scipy normalization.&quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_8</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                        <span class="k">print</span> <span class="s">&quot;Norm scaling coeff = &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_8</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">))</span>
+                        <span class="k">print</span> <span class="s">&quot;Bad float for norm amp coeff&quot;</span>
+                        </div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setNormParamsFile"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setNormParamsFile">[docs]</a>        <span class="k">def</span> <span class="nf">setNormParamsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Set the normalization parameter directory.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_7</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_file</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setNormParamsBool"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setNormParamsBool">[docs]</a>        <span class="k">def</span> <span class="nf">setNormParamsBool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Set boolian on whether the scan should normalize input/output for devices.</span>
+<span class="sd">                </span>
+<span class="sd">                This only applies to the simplex/scipy minimize methods, not the GP.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox_2</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">print</span> <span class="s">&quot;Norm Params == &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setTrimDelay"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTrimDelay">[docs]</a>        <span class="k">def</span> <span class="nf">setTrimDelay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Select a new trim time for a device from GUI line edit.</span>
+
+<span class="sd">                Scanner will wait this long before starting data acquisition.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_2</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">label_7</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Cycle Period = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+                        <span class="k">print</span> <span class="s">&quot;Trim delay =&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_2</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="p">))</span>
+                        <span class="k">print</span> <span class="s">&quot;bad float for trim delay&quot;</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setDataDelay"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setDataDelay">[docs]</a>        <span class="k">def</span> <span class="nf">setDataDelay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Select time for objective method data collection time.</span>
+
+<span class="sd">                Scanner will wait this long to collect new data.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_3</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">label_7</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Cycle Period = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+                        <span class="k">print</span> <span class="s">&quot;Data delay =&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_3</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">))</span>
+                        <span class="k">print</span> <span class="s">&quot;bad float for data delay&quot;</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setGpSeed"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeed">[docs]</a>        <span class="k">def</span> <span class="nf">setGpSeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Set directory string to use for the GP scanner seed file.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_4</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setGpHyps"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpHyps">[docs]</a>        <span class="k">def</span> <span class="nf">setGpHyps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Set directory string to use for the GP hyper parameters file.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_5</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">GP_hyp_file</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setGpSeedIters"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSeedIters">[docs]</a>        <span class="k">def</span> <span class="nf">setGpSeedIters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Set number of iterations to run the simplex scan before GP runs.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_6</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                        <span class="k">print</span> <span class="s">&quot;GP seed iterations = &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_6</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span><span class="p">))</span>
+                        <span class="k">print</span> <span class="s">&quot;bad float for data delay&quot;</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setGpSimplexSeed"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setGpSimplexSeed">[docs]</a>        <span class="k">def</span> <span class="nf">setGpSimplexSeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Sets the bool to run GP in a simplex seed mode.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">checkBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">print</span> <span class="s">&quot;GP seed bool == &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span>
+        
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setTaperCoeff"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setTaperCoeff">[docs]</a>        <span class="k">def</span> <span class="nf">setTaperCoeff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;Changes the scaling parameter for taper optimization.&quot;&quot;&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_9</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+                        <span class="k">print</span> <span class="s">&quot;Taper scaling coeff = &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">lineEdit_9</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taper_coeff</span><span class="p">))</span>
+                        <span class="k">print</span> <span class="s">&quot;Bad float for taper amp coeff&quot;</span>
+ 
+<span class="c">#======================================================================#</span>
+<span class="c"># -------------- Start code for setting/updateing plots -------------- #</span>
+<span class="c">#======================================================================#</span>
+
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.getPlotData"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.getPlotData">[docs]</a>        <span class="k">def</span> <span class="nf">getPlotData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Collects data and updates plot on every GUI clock cycle.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#get x,y obj func data from the machine interface</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">detector</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;timestamps&#39;</span><span class="p">])</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">scanStartTime</span>
+                <span class="c">#set data to liek pg line object</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obj_func_line</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+
+                <span class="c">#plot data for all devices being scanned</span>
+                <span class="k">for</span> <span class="n">pv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">:</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">mi</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">pv</span><span class="p">])</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">multiPlotStarts</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">multilines</span><span class="p">[</span><span class="n">pv</span><span class="p">]</span>
+                        <span class="n">line</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.addPlots"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.addPlots">[docs]</a>        <span class="k">def</span> <span class="nf">addPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Initializes the GUIs plots and labels on startup.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+                <span class="c">#setup plot 1 for obj func monitor</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot1</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotWidget</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Objective Function Monitor&quot;</span><span class="p">,</span><span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;left&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">),</span><span class="s">&#39;bottom&#39;</span><span class="p">:</span><span class="s">&quot;Time (seconds)&quot;</span><span class="p">})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot1</span><span class="o">.</span><span class="n">showGrid</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">plot1</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s">&#39;left&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">enableAutoSIPrefix</span><span class="p">(</span><span class="n">enable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># stop the auto unit scaling on y axes</span>
+		<span class="n">layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QGridLayout</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget_2</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+		<span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>	
+
+                <span class="c">#setup plot 2 for device monitor</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot2</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotWidget</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Device Monitor&quot;</span><span class="p">,</span><span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;left&#39;</span><span class="p">:</span><span class="s">&quot;Device (Current - Start)&quot;</span><span class="p">,</span><span class="s">&#39;bottom&#39;</span><span class="p">:</span><span class="s">&quot;Time (seconds)&quot;</span><span class="p">})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">showGrid</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s">&#39;left&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">enableAutoSIPrefix</span><span class="p">(</span><span class="n">enable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># stop the auto unit scaling on y axes</span>
+		<span class="n">layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QGridLayout</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget_3</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+		<span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>	
+
+                <span class="c">#legend for plot 2</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span> <span class="o">=</span> <span class="n">customLegend</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mi">75</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span><span class="o">.</span><span class="n">setParentItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">graphicsItem</span><span class="p">())</span>
+
+                <span class="c">#create the obj func line object</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">)</span>
+                <span class="n">pen</span><span class="o">=</span><span class="n">pg</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="n">color</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">obj_func_line</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotCurveItem</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[],</span><span class="n">y</span><span class="o">=</span><span class="p">[],</span><span class="n">pen</span><span class="o">=</span><span class="n">pen</span><span class="p">,</span><span class="n">antialias</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot1</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_func_line</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.randColor"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.randColor">[docs]</a>        <span class="k">def</span> <span class="nf">randColor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Generate random line color for each device plotted.</span>
+
+<span class="sd">                Returns: </span>
+<span class="sd">                        QColor object of a random color</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+		<span class="n">hi</span> <span class="o">=</span> <span class="mi">255</span>
+		<span class="n">lo</span> <span class="o">=</span> <span class="mi">128</span> 
+		<span class="n">c1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">)</span>
+		<span class="n">c2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">)</span>
+		<span class="n">c3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span><span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.setUpMultiPlot"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.setUpMultiPlot">[docs]</a>        <span class="k">def</span> <span class="nf">setUpMultiPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pvs</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Reset plots when a new scan is started.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">multilines</span>      <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">multiPvData</span>     <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">multiPlotStarts</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">removeItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leg2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span> <span class="o">=</span> <span class="n">customLegend</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span><span class="o">.</span><span class="n">setParentItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">graphicsItem</span><span class="p">())</span>
+
+                <span class="n">default_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">51</span><span class="p">,</span><span class="mi">51</span><span class="p">),</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">51</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">51</span><span class="p">),</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">51</span><span class="p">),</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="mi">178</span><span class="p">,</span><span class="mi">102</span><span class="p">,</span><span class="mi">255</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pvs</span><span class="p">)):</span>
+       
+                        <span class="c">#set the first 4 devices to have the same default colors</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                                <span class="n">color</span> <span class="o">=</span> <span class="n">default_colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">randColor</span><span class="p">()</span>
+
+                        <span class="n">pen</span><span class="o">=</span><span class="n">pg</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="n">color</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">multilines</span><span class="p">[</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotCurveItem</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">pen</span><span class="o">=</span><span class="n">pen</span><span class="p">,</span><span class="n">antialias</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">multiPvData</span><span class="p">[</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">multiPlotStarts</span><span class="p">[</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">plot2</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">multilines</span><span class="p">[</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">leg2</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">multilines</span><span class="p">[</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span><span class="n">pvs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">color</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">name</span><span class="p">()))</span>
+        
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.launchHeatMap"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.launchHeatMap">[docs]</a>        <span class="k">def</span> <span class="nf">launchHeatMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Launches script to display a GP heatmap of two PVs selected from table.</span>
+
+<span class="sd">                Can only show data from the GUIs last scan.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">pvnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">getPvsFromCbState</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvnames</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">print</span> <span class="s">&quot;Pick only 2 PVs for a slice!&quot;</span>
+                        <span class="k">return</span>
+                <span class="n">com</span> <span class="o">=</span> <span class="s">&quot;python ./GP/analyze_script.py &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_filename</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="n">pvnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="n">pvnames</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="s">&quot; &amp;&quot;</span>
+                <span class="k">print</span> <span class="s">&#39;Heatmap command:&#39;</span><span class="p">,</span><span class="n">com</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">com</span><span class="p">)</span>
+
+        
+<span class="c">#========================================================================#</span>
+<span class="c"># -------------- Start code for running optimization scan -------------- #</span>
+<span class="c">#========================================================================#</span>
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.runScan"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScan">[docs]</a>        <span class="k">def</span> <span class="nf">runScan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to start the scanner thread object. </span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#pulls selected pvs from resetpanelbox widget</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pvs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">getPvsFromCbState</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scanStartTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">taperPVSelected</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taperPVs</span><span class="p">))</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([])</span> <span class="c">#convoluted set method of checking if any taper PVs are being optimized</span>
+                <span class="c">#kill scan if user hits this button while the scan is already running</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;Stop scan&quot;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="c">#kill taperThread if it exists</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="c">#kill a seeded scan</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="c">#kill a normal scan</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                        <span class="c">#update the GUI after killing scan</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                        <span class="k">return</span>
+
+                <span class="c">#set gui button and color</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Stop scan&quot;</span><span class="p">)</span>
+                <span class="c">#self.ui.pushButton.setStyleSheet(&quot;color: rgb(85, 255, 127);&quot;)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&quot;color: red&quot;</span><span class="p">)</span>
+
+                <span class="c">#Make new plots to show the scan data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setUpMultiPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">)</span>
+    		<span class="bp">self</span><span class="o">.</span><span class="n">multiPvTimer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+                <span class="c">#set listener flag to True</span>
+		<span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">setListener</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">index</span> <span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">setListener</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+
+                <span class="c">#start thread scan</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scanMethodSelect</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pvs</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">,</span><span class="n">iters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iters</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="c">#Display error if the scanner object fails to inititialize and setup</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+                        <span class="k">print</span>
+                        <span class="k">print</span> <span class="s">&quot;Error starting up scan thread!&quot;</span>
+                        <span class="k">print</span> 
+                        <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                        <span class="k">return</span>                        
+                <span class="c">#if taperPV is selected, start taper thread</span>
+                <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taperPVSelected</span><span class="p">):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span> <span class="o">=</span> <span class="n">taperThread</span><span class="o">.</span><span class="n">taperWatcher</span><span class="p">()</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="k">print</span>
+                                <span class="k">print</span> <span class="s">&quot;Error starting up taper thread!&quot;</span>
+                                <span class="k">print</span>
+                                <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                                <span class="c">#self.scanFinished()</span>
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.scanFinished"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scanFinished">[docs]</a>        <span class="k">def</span> <span class="nf">scanFinished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Reset the GUI after a scan is complete.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">print</span> <span class="s">&quot;Scan Finished&quot;</span>
+                <span class="c">#set flag PV to zero</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setListener</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> 
+                <span class="c">#reset UI controls</span>
+    		<span class="bp">self</span><span class="o">.</span><span class="n">multiPvTimer</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                        <span class="n">tThread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="n">QMessageBox</span><span class="p">()</span>
+                        <span class="n">msg</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Reset Taper?&quot;</span><span class="p">)</span>
+                        <span class="n">msg</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s">&quot;Reset Taper&quot;</span><span class="p">)</span>
+                        <span class="n">msg</span><span class="o">.</span><span class="n">setStandardButtons</span><span class="p">(</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span> <span class="o">|</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">No</span><span class="p">)</span>
+                        <span class="n">retval</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">retval</span> <span class="o">==</span> <span class="n">QMessageBox</span><span class="o">.</span><span class="n">Yes</span><span class="p">):</span>
+                                <span class="n">tThread</span><span class="o">.</span><span class="n">taper</span><span class="o">.</span><span class="n">resetTaper</span><span class="p">()</span>
+                        <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taperThread</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s">&quot;color: rgb(85, 255, 127);&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s">&quot;Start scan&quot;</span><span class="p">)</span>
+
+
+<span class="c">#======================================================================#</span>
+<span class="c"># -------------- Start code for saveing/logbooking data -------------- #</span>
+<span class="c">#======================================================================#</span>
+
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.saveData"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.saveData">[docs]</a>        <span class="k">def</span> <span class="nf">saveData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_new</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Save scan data to the physics matlab data directory.</span>
+<span class="sd">                </span>
+<span class="sd">                Uses module matlog to save data dict in machine interface file.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#get the first and last points for GDET gain</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detValStart</span> <span class="o">=</span> <span class="n">data_new</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detValStop</span>  <span class="o">=</span> <span class="n">data_new</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        
+                <span class="c">#replace with matlab friendly strings</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_new</span><span class="p">:</span>
+                        <span class="n">key2</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">,</span><span class="s">&quot;_&quot;</span><span class="p">)</span>
+                        <span class="n">data_new</span><span class="p">[</span><span class="n">key2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_new</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        
+                <span class="c">#extra into to add into the save file</span>
+                <span class="n">data_new</span><span class="p">[</span><span class="s">&quot;BEND_DMP1_400_BDES&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epicsGet</span><span class="o">.</span><span class="n">caget</span><span class="p">(</span><span class="s">&quot;BEND:DMP1:400:BDES&quot;</span><span class="p">)</span>
+                <span class="n">data_new</span><span class="p">[</span><span class="s">&quot;ScanAlgorithm&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_current</span><span class="p">)</span>      <span class="c">#string of the algorithm name</span>
+                <span class="n">data_new</span><span class="p">[</span><span class="s">&quot;ObjFuncPv&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">)</span> <span class="c">#string identifing obj func pv</span>
+                <span class="n">data_new</span><span class="p">[</span><span class="s">&quot;NormAmpCoeff&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span>
+
+                <span class="c">#save data</span>
+                <span class="kn">import</span> <span class="nn">matlog</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_filename</span><span class="o">=</span><span class="n">matlog</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;OcelotScan&quot;</span><span class="p">,</span><span class="n">data_new</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_path</span><span class="p">)</span> 
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.logbook"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logbook">[docs]</a>   	<span class="k">def</span> <span class="nf">logbook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">extra_log_text</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Send a screenshot to the physics logbook.</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        extra_log_text (str): string to set if verbose text should be printed to logbook. &#39;default&#39; prints only gain and algorithm</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#Put an extra string into the logbook function</span>
+                <span class="n">log_text</span> <span class="o">=</span> <span class="s">&quot;Gain (&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective_func_pv</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;): &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detValStart</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="o">+</span><span class="s">&quot; &gt; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detValStop</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Scan Method: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name_current</span>
+                <span class="k">if</span> <span class="n">extra_log_text</span> <span class="o">!=</span> <span class="s">&#39;default&#39;</span><span class="p">:</span>
+                        <span class="n">log_text</span> <span class="o">=</span> <span class="n">log_text</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">extra_log_text</span><span class="p">)</span>
+
+                <span class="n">curr_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                <span class="n">timeString</span> <span class="o">=</span> <span class="n">curr_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%Y-%m-</span><span class="si">%d</span><span class="s">T%H:%M:%S&quot;</span><span class="p">)</span>
+                <span class="n">log_entry</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+                <span class="n">severity</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;severity&#39;</span><span class="p">)</span>
+                <span class="n">location</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;location&#39;</span><span class="p">)</span>
+                <span class="n">keywords</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;keywords&#39;</span><span class="p">)</span>
+                <span class="n">time</span>      <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">)</span>
+                <span class="n">isodate</span>   <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;isodate&#39;</span><span class="p">)</span>
+                <span class="n">log_user</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;author&#39;</span><span class="p">)</span>
+                <span class="n">category</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;category&#39;</span><span class="p">)</span>
+                <span class="n">title</span>     <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span>
+                <span class="n">metainfo</span>  <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;metainfo&#39;</span><span class="p">)</span>
+                <span class="n">imageFile</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;link&#39;</span><span class="p">)</span>
+                <span class="n">imageFile</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">timeString</span> <span class="o">+</span> <span class="s">&#39;-00.ps&#39;</span>
+                <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;file&#39;</span><span class="p">)</span>
+                <span class="n">thumbnail</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">timeString</span> <span class="o">+</span> <span class="s">&quot;-00.png&quot;</span>
+                <span class="n">text</span>      <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">)</span>
+                <span class="n">log_entry</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;LOGENTRY&quot;</span>
+                <span class="n">category</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;USERLOG&quot;</span>
+                <span class="n">location</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;not set&quot;</span>
+                <span class="n">severity</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;NONE&quot;</span>
+                <span class="n">keywords</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;none&quot;</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">curr_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%H:%M:%S&quot;</span><span class="p">)</span>
+                <span class="n">isodate</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span>  <span class="n">curr_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%Y-%m-</span><span class="si">%d</span><span class="s">&quot;</span><span class="p">)</span>
+                <span class="n">metainfo</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">timeString</span> <span class="o">+</span> <span class="s">&quot;-00.xml&quot;</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="s">&quot;/tmp/&quot;</span> <span class="o">+</span> <span class="n">metainfo</span><span class="o">.</span><span class="n">text</span>
+                <span class="n">fileName</span><span class="o">=</span><span class="n">fileName</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&quot;.xml&quot;</span><span class="p">)</span>
+                <span class="n">log_user</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot; &quot;</span>
+                <span class="n">title</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="s">&quot;Ocelot Interface&quot;</span><span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">log_text</span>
+                <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s">&quot;&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot; &quot;</span> <span class="c"># If field is truly empty, ElementTree leaves off tag entirely which causes logbook parser to fail</span>
+                <span class="n">xmlFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fileName</span><span class="o">+</span><span class="s">&#39;.xml&#39;</span><span class="p">,</span><span class="s">&quot;w&quot;</span><span class="p">)</span>
+                <span class="n">rawString</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">log_entry</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                <span class="n">parsedString</span> <span class="o">=</span> <span class="n">sub</span><span class="p">(</span><span class="s">r&#39;(?=&lt;[^/].*&gt;)&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="n">rawString</span><span class="p">)</span>
+                <span class="n">xmlString</span><span class="o">=</span><span class="n">parsedString</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">xmlFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xmlString</span><span class="p">)</span>
+                <span class="n">xmlFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>  <span class="c"># Close with newline so cron job parses correctly</span>
+                <span class="n">xmlFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">screenShot</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span><span class="s">&#39;png&#39;</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;/u1/lcls/physics/logbook/data/&quot;</span>
+                <span class="n">copy</span><span class="p">(</span><span class="n">fileName</span><span class="o">+</span><span class="s">&#39;.ps&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+                <span class="n">copy</span><span class="p">(</span><span class="n">fileName</span><span class="o">+</span><span class="s">&#39;.png&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+                <span class="n">copy</span><span class="p">(</span><span class="n">fileName</span><span class="o">+</span><span class="s">&#39;.xml&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.screenShot"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.screenShot">[docs]</a>        <span class="k">def</span> <span class="nf">screenShot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">filetype</span><span class="p">):</span>
+	        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Takes a screenshot of the whole gui window, saves png and ps images to file</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        fileName (str): Directory string of where to save the file</span>
+<span class="sd">                        filetype (str): String of the filetype to save</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;.&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">filetype</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">QPixmap</span><span class="o">.</span><span class="n">grabWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">winId</span><span class="p">())</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s">&#39;png&#39;</span><span class="p">)</span>
+                <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;.ps&quot;</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">scaled</span><span class="p">(</span><span class="mi">465</span><span class="p">,</span><span class="mi">400</span><span class="p">)</span>
+                <span class="c">#save again a small image to use for the logbook thumbnail</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="s">&#39;png&#39;</span><span class="p">)</span>
+
+
+<span class="c">#============================================================================#</span>
+<span class="c"># -------------- Code for script mode running and documenation --------------#</span>
+<span class="c">#============================================================================#</span>
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.runScript"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.runScript">[docs]</a>        <span class="k">def</span> <span class="nf">runScript</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to run a set of scripted commands throught the GUI.</span>
+
+<span class="sd">                This is used in development/MD for quickly scanning many sets in sequence.</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#kill scan if user hits this button while the scan is already running</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">pushButton</span><span class="o">.</span><span class="n">text</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;Stop scan&quot;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="c">#kill a seeded scan</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">seedThread</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">kill</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+
+                        <span class="c">#update the GUI after killing scan</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">scanFinished</span><span class="p">()</span>
+                        <span class="k">return</span>
+
+                <span class="c">#obj func PV</span>
+                <span class="c">#self.objective_func_pv = &quot;SIOC:SYS0:ML00:CALCOUT993&quot;</span>
+
+                <span class="c">#Timesetup</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c">#fast trim time</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="c">#fast delay time</span>
+                <span class="c">#self.trim_delay = 0.1 #fast trim time</span>
+                <span class="c">#self.data_delay = 0.1 #fast delay time</span>
+
+                <span class="c">#Iters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">iters</span> <span class="o">=</span> <span class="mi">45</span>
+
+                <span class="c">#GP MODE</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span>   <span class="o">=</span> <span class="mi">5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span> <span class="o">=</span> <span class="bp">True</span>
+        
+                <span class="c">#select ocelot normalization for OcelotScanner</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span> <span class="o">=</span> <span class="bp">True</span>
+
+                <span class="c"># ------- START NORM SCRIPT THE SCRIPT ------- #</span>
+
+                <span class="k">print</span> <span class="s">&quot;STARTING SCRIPT RUN&quot;</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">0.5</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scriptScan</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scriptScan</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">2.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scriptScan</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span> <span class="o">=</span> <span class="mf">3.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scriptScan</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.scriptScan"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.scriptScan">[docs]</a>        <span class="k">def</span> <span class="nf">scriptScan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">                Single scan to run in the script.</span>
+<span class="sd">                </span>
+<span class="sd">                The sequency of events:</span>
+<span class="sd">                * Select optimizer type based on index arg</span>
+<span class="sd">                * Execute runScan() method</span>
+<span class="sd">                * Start the wait() method until thread finishes</span>
+<span class="sd">                * Send data to logbook (data file saved separatly automaticaly)</span>
+<span class="sd">                * Reset all devices to start</span>
+
+<span class="sd">                Args:</span>
+<span class="sd">                        index (int): Integer to choose algorithm method from combobox</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c">#select algorithm</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">comboBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> 
+                <span class="c">#start the scan</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runScan</span><span class="p">()</span> 
+                <span class="c">#wait for scan to finish</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span> 
+                <span class="c">#extra log material </span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logTextVerbose</span><span class="p">()</span>
+                <span class="c">#reset devices</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">resetAll</span><span class="p">()</span> 
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.logTextVerbose"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.logTextVerbose">[docs]</a>        <span class="k">def</span> <span class="nf">logTextVerbose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Logbook method with extra info in text string&gt;</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">e1</span> <span class="o">=</span> <span class="s">&quot;Iterations: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iters</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>                         
+                <span class="n">e2</span> <span class="o">=</span> <span class="s">&quot;Trim delay: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trim_delay</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">e3</span> <span class="o">=</span> <span class="s">&quot;Data delay: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_delay</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">e4</span> <span class="o">=</span> <span class="s">&quot;Using Scipy Normalization: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params_bool</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">e5</span> <span class="o">=</span> <span class="s">&quot;Normalization Amp Coeff: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_amp_coeff</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">e6</span> <span class="o">=</span> <span class="s">&quot;Using Live Simplex Seed: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_simpelx_seed</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">e7</span> <span class="o">=</span> <span class="s">&quot;Iters of simplex Seed: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GP_seed_iters</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+                <span class="n">extra_log_text</span> <span class="o">=</span> <span class="n">e1</span><span class="o">+</span><span class="n">e2</span><span class="o">+</span><span class="n">e3</span><span class="o">+</span><span class="n">e4</span><span class="o">+</span><span class="n">e5</span><span class="o">+</span><span class="n">e6</span><span class="o">+</span><span class="n">e7</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logbook</span><span class="p">(</span><span class="n">extra_log_text</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="OcelotInterfaceWindow.wait"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.OcelotInterfaceWindow.wait">[docs]</a>        <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Method to wait for thread completion.</span>
+
+<span class="sd">                When running in script mode for development, this method waits until the scan thread has finished to launch the next test scan. Without this, the GUI try to start may threads at the same time instead of ordered,</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+                        <span class="n">QApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+                        <span class="k">try</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                                        <span class="k">print</span> <span class="s">&#39;Breaking out&#39;</span>
+                                        <span class="k">break</span>
+                        <span class="k">except</span><span class="p">:</span>
+                                <span class="c">#thread object is removed when it finishes sometimes</span>
+                                <span class="k">break</span>
+                <span class="k">print</span> <span class="s">&quot;WAIT FINISHED&quot;</span>
+
+
+
+<span class="c">#==========================================================================#</span>
+<span class="c"># -------------- Start code for reformating the plot legend -------------- #</span>
+<span class="c">#==========================================================================#</span>
+
+
+
+<span class="c"># Ignore most of thus stuff, only cosmetic for device plot</span>
+</div></div>
+<div class="viewcode-block" id="customLegend"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.customLegend">[docs]</a><span class="k">class</span> <span class="nc">customLegend</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">LegendItem</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        STUFF FOR PG CUSTOM LEGEND (subclassed from pyqtgraph).</span>
+<span class="sd">        Class responsible for drawing a single item in a LegendItem (sans label).</span>
+<span class="sd">        This may be subclassed to draw custom graphics in a Legend.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">pg</span><span class="o">.</span><span class="n">LegendItem</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">size</span><span class="p">,</span><span class="n">offset</span><span class="p">)</span>
+                 
+<div class="viewcode-block" id="customLegend.addItem"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.customLegend.addItem">[docs]</a>        <span class="k">def</span> <span class="nf">addItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&quot;CCFF00&quot;</span><span class="p">):</span>
+
+                <span class="n">label</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">LabelItem</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="s">&quot;6pt&quot;</span><span class="p">,</span><span class="n">bold</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">sample</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">sample</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    </div></div>
+<div class="viewcode-block" id="ItemSample"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.ItemSample">[docs]</a><span class="k">class</span> <span class="nc">ItemSample</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">GraphicsWidget</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; MORE STUFF FOR CUSTOM LEGEND &quot;&quot;&quot;</span>
+
+     <span class="c">## Todo: make this more generic; let each item decide how it should be represented.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">pg</span><span class="o">.</span><span class="n">GraphicsWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item</span> <span class="o">=</span> <span class="n">item</span>
+    
+<div class="viewcode-block" id="ItemSample.boundingRect"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.ItemSample.boundingRect">[docs]</a>    <span class="k">def</span> <span class="nf">boundingRect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QRectF</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ItemSample.paint"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.ItemSample.paint">[docs]</a>    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="c">#p.setRenderHint(p.Antialiasing)  # only if the data is antialiased.</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">opts</span>
+        
+        <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fillLevel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fillBrush&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">mkBrush</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s">&#39;fillBrush&#39;</span><span class="p">]))</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">drawPolygon</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPolygonF</span><span class="p">([</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QPointF</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">18</span><span class="p">),</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPointF</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPointF</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span><span class="mi">18</span><span class="p">)]))</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">,</span> <span class="n">ScatterPlotItem</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s">&#39;pen&#39;</span><span class="p">]))</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">drawLine</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;symbol&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">,</span> <span class="n">PlotDataItem</span><span class="p">):</span>
+                <span class="n">opts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">scatter</span><span class="o">.</span><span class="n">opts</span>
+                
+            <span class="n">pen</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s">&#39;pen&#39;</span><span class="p">])</span>
+            <span class="n">brush</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">mkBrush</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s">&#39;brush&#39;</span><span class="p">])</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">opts</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span>
+            
+            <span class="n">p</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">drawSymbol</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">pen</span><span class="p">,</span> <span class="n">brush</span><span class="p">)</span>
+
+
+
+<span class="c">#==============================================================#</span>
+<span class="c"># --------------- main method for starting GUI --------------- #</span>
+<span class="c">#==============================================================#</span>
+
+
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../OcelotInterface.html#OcelotInterface.OcelotInterface.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Funciton to start up the main program.</span>
+
+<span class="sd">        Slecting a PV parameter set:</span>
+<span class="sd">        If launched from the command line will take an argument with the filename of a parameter file.</span>
+<span class="sd">        If no argv[1] is provided, the default list in ./parameters/lclsparams is used.</span>
+
+<span class="sd">        Development mode:</span>
+<span class="sd">        If devmode == False - GUI defaults to normal parameter list, defaults to nelder mead simplex</span>
+<span class="sd">        if devmode == True  - GUI uses 4 development matlab PVs and loaded settings in the method &quot;devmode()&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c">#try to get a pv list file name from commandline arg</span>
+        <span class="c">#this goes into initializing the reset panel PVs that show up in the GUI</span>
+        <span class="k">try</span><span class="p">:</span> 
+                <span class="n">pvs</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>   <span class="c"># arg filename of params</span>
+        <span class="k">except</span><span class="p">:</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="s">&#39;parameters/lclsparams&#39;</span><span class="c">#default filename</span>
+
+        <span class="c">#make pyqt threadsafe</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">setAttribute</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AA_X11InitThreads</span><span class="p">)</span>
+        <span class="c">#create the application</span>
+        <span class="n">app</span>    <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">OcelotInterfaceWindow</span><span class="p">()</span>
+
+        <span class="c">#setup development mode if devmode==True</span>
+        <span class="n">devmode</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c">#devmode = True</span>
+        <span class="k">if</span> <span class="n">devmode</span><span class="p">:</span>
+                <span class="n">pvs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;SIOC:SYS0:ML00:CALCOUT000&quot;</span><span class="p">,</span>
+                       <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT999&quot;</span><span class="p">,</span>
+                       <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT998&quot;</span><span class="p">,</span>
+                       <span class="s">&quot;SIOC:SYS0:ML00:CALCOUT997&quot;</span><span class="p">]</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">devmode</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">disableStuff</span><span class="p">()</span>
+        
+        <span class="c">#Build the PV list from dev PVs or selected source</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">getPvList</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span>
+
+        <span class="c">#set checkbot status</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">devmode</span><span class="p">:</span> 
+                <span class="n">window</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">uncheckBoxes</span><span class="p">()</span>
+
+        <span class="c">#show app</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">setWindowIcon</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QIcon</span><span class="p">(</span><span class="s">&#39;ocelot.png&#39;</span><span class="p">))</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="c">#Build documentaiton if source files have changed</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;cd ./docs &amp;&amp; xterm -T &#39;Ocelot Doc Builder&#39; -e &#39;bash checkDocBuild.sh&#39; &amp;&quot;</span><span class="p">)</span>
+        <span class="c">#exit script</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+
+        <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">OcelotInterface 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tyler Cope.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
